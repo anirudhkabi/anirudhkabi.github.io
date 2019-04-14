@@ -1,0 +1,10 @@
+interval=5
+node_id=0
+self_node_ip=192.168.0.1
+no_of_control_slots=1
+no_of_contention_slots=3
+no_data_slots=99
+max_no_of_rssi_values=3
+rssi_sense_timeout=1284
+eoot_ip=192.168.0.1
+fractel_data_rate=11

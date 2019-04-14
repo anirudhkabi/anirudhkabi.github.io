@@ -1,0 +1,49 @@
+------------------------------------------------------------
+Server listening on TCP port 5002
+TCP window size: 85.3 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.1 port 34018
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  3.22 MBytes  2.67 Mbits/sec
+[  8] local 192.168.1.4 port 5002 connected with 192.168.1.1 port 34019
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.1 sec  3.20 MBytes  2.66 Mbits/sec
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.1 port 34020
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  3.19 MBytes  2.65 Mbits/sec
+[  8] local 192.168.1.4 port 5002 connected with 192.168.1.1 port 34021
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.1 sec  3.20 MBytes  2.67 Mbits/sec
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.1 port 34022
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  3.20 MBytes  2.65 Mbits/sec
+[  8] local 192.168.1.4 port 5002 connected with 192.168.1.2 port 40196
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.1 sec  3.02 MBytes  2.51 Mbits/sec
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.2 port 40197
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  3.01 MBytes  2.50 Mbits/sec
+[  8] local 192.168.1.4 port 5002 connected with 192.168.1.2 port 40198
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.1 sec  3.02 MBytes  2.51 Mbits/sec
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.2 port 40199
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  3.01 MBytes  2.49 Mbits/sec
+[  8] local 192.168.1.4 port 5002 connected with 192.168.1.2 port 40200
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.1 sec  3.01 MBytes  2.50 Mbits/sec
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.3 port 49090
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  2.91 MBytes  2.42 Mbits/sec
+[  8] local 192.168.1.4 port 5002 connected with 192.168.1.3 port 49091
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.1 sec  2.95 MBytes  2.46 Mbits/sec
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.3 port 49092
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  2.96 MBytes  2.45 Mbits/sec
+[  8] local 192.168.1.4 port 5002 connected with 192.168.1.3 port 49093
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.1 sec  2.91 MBytes  2.42 Mbits/sec
+[  7] local 192.168.1.4 port 5002 connected with 192.168.1.3 port 49094
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.1 sec  2.97 MBytes  2.46 Mbits/sec

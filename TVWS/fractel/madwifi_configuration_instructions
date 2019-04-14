@@ -1,0 +1,96 @@
+Instructions for installing the modified madwifi code for TDMA operation
+============================================================================
+
+Before starting the tdma operation, the values of different TDMA MAC parameters and madwifi parameters need to be set properly, for which the procedure is given below
+
+Config file
+--------------
+The values for different parameters of the TDMA MAC protocol need to be configured using a config file the format of which is given below
+
+
+	interval=5
+	node_id=1					//0 for root node and non-zero for non-root node
+	self_node_ip=192.168.0.2			//ip-address of the current node
+	no_of_control_slots=1
+	no_of_contention_slots=3			
+	no_data_slots=99
+	max_no_of_rssi_values=8				// number of retries (keep equal for all nodes)
+	rssi_sense_timeout=-1				
+	root_ip=192.168.0.1				// ip address of the root node
+	fractel_data_rate=11
+	frame_length=2                               // this is equal to the number of nodes in the mesh network
+	slot1=0						// this is 0 for the root node and then successively increases for other nodes (logical slot number)
+	
+
+where 
+
+	(i) interval is tdma slot duration in ms. It should be a integer value.
+	(ii) node_id - a unique integer identifier for each node. It's value should be 0 for root node. Also the values should be continous starting with 0 ie. for 4 node network, the node-id's should be 0,1,2 and 3.
+	(iii) self_node_ip - ip of the node
+	(iv) no_of_control_slots - number of control slots in the frame. A frame consists of 3 types of slots, control, contention and data slots. Set the value of the parameter, no_of_control_slots equal to 1. Choose the value for number of contention slots and data slots appropriately. For more details regarding the design of the protocol, refer
+	
+	http://www.cse.iitb.ac.in/silmaril/br/lib/exe/fetch.php?id=proj%3Afractel&cache=cache&media=papers:2009-fractel-mac-impl-nsdr09.pdf
+	and,
+	http://www.cse.iitb.ac.in/silmaril/br/lib/exe/fetch.php?id=proj%3Alit-mac-dev10&cache=cache&media=papers:2010-lit-mac.pdf
+	(v)fractel_data_rate - The value of this parameter should be set depending on the underlying data rate set using the iwconfig command. The mapping is given as follows,
+	
+	1 Mb --> 27
+    2 Mb --> 26
+    5.5 Mb --> 25
+    11 Mb --> 24
+
+    6 Mb --> 11
+    9 Mb --> 15
+    12 Mb --> 10
+    18 Mb --> 14
+    24 Mb --> 9
+    36 Mb --> 13
+    48 Mb --> 8
+    54 Mb --> 12
+ 
+ So, if the underlying data rate is set as 6Mbps, the value of fractel_data_rate should be 11.
+	
+	The sample config file is available at sample_files/config.cfg
+
+Startup script
+---------------
+Before starting the tdma operation, the values of different madwifi parameters need to be set properly. Typically this can be done using a script which runs at the startup. The sample script folder sample_files/startup.sh is reproduced here,
+
+wlanconfig ath0 destroy
+wlanconfig ath0 create wlandev wifi0 wlanmode monitor
+sleep 5
+ath=`ifconfig -a| grep "ath" | cut -f 1 -d ' '`
+iwconfig $ath channel 7
+iwconfig $ath essid meas
+iwconfig $ath txpower 23dbm
+iwconfig $ath rate 6M fixed
+ifconfig $ath down
+ifconfig $ath 192.168.0.2 netmask 255.255.0.0 up
+cat /home/config.cfg > /proc/net/madwifi/ath0/fractel_config
+echo 0 > /proc/sys/dev/wifi0/diversity
+echo 1 > /proc/sys/dev/wifi0/rxantenna
+echo 1 > /proc/sys/dev/wifi0/txantenna
+sysctl -w dev.wifi0.disable_cca=7
+sysctl -w dev.wifi0.acktimeout=30
+sysctl -w dev.wifi0.intmit=0
+sysctl -w dev.wifi0.ofdm_weak_det=1
+sysctl -w dev.wifi0.noise_immunity=4
+rm /home/outfile
+/home/fractel_readlog /home/outfile &
+/home/fractel_routing_daemon /home/routing_log &
+
+
+Most of the operations are self-explanatory, except a few like,
+
+(i)cat /home/config.cfg > /proc/net/madwifi/ath0/fractel_config
+
+This command copies the config file described above, at the location /home/config.cfg into the kernel proc filesystem. In your system, if the config file is at location X other than /home, change the path appropriate as X/config.cfg
+
+(ii)/home/fractel_readlog /home/outfile &
+
+This command starts the logger program at location /home/fractel_readlog. As before the logger program, fractel_readlog can be at any location. Also the details for compliling the program are given in file fractel_readlog/README
+
+(iii) /home/fractel_routing_daemon /home/routing_log &
+
+This command starts the routing daemon at location /home/fractel_routing_daemon. As before the program for routing daemon, fractel_routing_daemon can be at any location. Also the details for compliling the program are given in file fractel_routing_daemon/README
+

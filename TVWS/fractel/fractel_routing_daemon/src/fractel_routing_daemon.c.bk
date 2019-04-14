@@ -1,0 +1,94 @@
+#include<stdio.h>
+#include<string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+int add_routing_entries(unsigned int **routing_table, int length)
+{
+	return 0;	
+}
+int main(int argc, char **argv)
+{
+	FILE *fdproc, *fduser;	
+	int routing_tree_length = 0, numread = 0, loop_counter = 0, count = 0;
+	unsigned int ip1 = 0, ip2 = 0, self_ip = 0;
+	unsigned int **routing_entries = NULL;
+
+	    
+	if (argc==2)
+	{   
+		if ((fduser=fopen(argv[1], "w")) == NULL) {
+			printf("Could not open output file\n");
+		}
+
+	}   
+	else
+	{   
+		if ((fduser=stdout))
+		{
+			printf("Could not open output file\n");
+		}
+	}
+
+	printf("new daemon\n");	
+	while (1)
+	{
+		if ((fdproc=fopen("/proc/net/madwifi/ath0/fractel_routing_entries", "r"))!=NULL) {
+			if ((numread = fscanf(fdproc,"%u,%u",&ip1,&ip2)) > 0)
+			{
+				fprintf(fduser,"%u %u\n","ip1,ip2");
+				//printf("%u %u\n",ip1,ip2);
+				if (ip1 == 999999999)
+				{
+					//start of routing tree
+					routing_tree_length = ip2;
+					count = ip2;
+					//free memory allocated for routing_table
+					if (routing_entries != NULL)
+					{
+						for(loop_counter = 0; loop_counter<routing_tree_length; loop_counter++)
+						{
+							free(routing_entries[loop_counter]);	
+						}
+						free(routing_entries);
+						//allocate memory
+						routing_entries = (unsigned int**)malloc(sizeof(unsigned int)*routing_tree_length);
+						for(loop_counter = 0; loop_counter<routing_tree_length; loop_counter++)
+						{
+							routing_entries[loop_counter] = (unsigned int *)malloc(sizeof(unsigned int)*2);
+						}
+
+					}	
+				}else if (count == routing_tree_length)
+				{
+					//first ip
+					self_ip = ip1;		
+				}
+				else {
+					//subsequent ip's
+					routing_entries[routing_tree_length - count][0] = ip1;	
+					routing_entries[routing_tree_length - count][1] = ip2;
+					count--;	
+				}
+				if (count == 0)
+				{
+					add_routing_entries(routing_entries, routing_tree_length);	
+					fclose(fdproc);
+				}	
+			}
+			else
+			{	
+				sleep(1);
+			}
+		}
+		else
+		{	
+			sleep(1);
+			//printf("no data : %s\n",buff);			
+			//break;
+		}
+	}
+		fclose(fduser);
+	return 0;
+}

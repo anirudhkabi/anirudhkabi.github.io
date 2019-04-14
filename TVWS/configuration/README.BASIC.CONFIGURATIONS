@@ -1,0 +1,80 @@
+Download Backfire 10.03 from 
+http://downloads.openwrt.org/backfire/10.03/backfire_10.03_source.tar.bz2
+
+Untar the file and copy it in home folder
+cd backfire_10.03
+make menuconfig
+	Select the following components:
+		Target: AR71XXX
+		Default: no WiFi
+		Generate tar.gz, squashfs
+		Wireless Modules: ath5k (Make sure it is selected as '*' and not 'm' - double space bar)
+		wpa
+
+make V=99
+---------------------------------------------------------------------------------------------------------------------------	
+Install and Configure DHCP & TFTP Server
+
+sudo apt-get install atftpd
+sudo apt-get install dhcp3-server
+sudo mkdir /tftpboot
+sudo cp vmlinux /tftpboot/vmlinux (Get this ramdisk file from the homepage)
+sudo atftpd --bind-address 10.107.48.210 --logfile ~/log  --daemon
+- configure file /etc/dhcp/dhcpd.conf file appropriately, and then start dhcpd via the command
+sudo dhcpd -cf /etc/dhcp/dhcpd.conf --no-pid  eth0
+---------------------------------------------------------------------------------------------------------------------------
+Switch ON RB and enable network boot
+
+Once the device boots, execute the following: 
+
+ifconfig br-lan down
+brctl delbr br-lan
+ifconfig eth0 10.107.48.50
+passwd
+<Set Password>
+---------------------------------------------------------------------------------------------------------------------------
+In a new terminal, go to ~/backfire_10.03/bin/ar71xx/
+
+Point A: scp openwrt-ar71xx-vmlinux.elf openwrt-ar71xx-rootfs.tgz root@10.107.48.50:/tmp/
+If scp if giving problems try: ssh-keygen -f "/root/.ssh/known_hosts" -R 10.107.48.50
+------------------------------------------------------------------
+At this point RB433AH has kernel image in its /tmp directory. To install OpenWRT on RB433AH run following set of commands
+
+mount /dev/mtdblock1 /mnt/
+mv /tmp/openwrt-ar71xx-vmlinux.elf /mnt/kernel
+umount /mnt
+mount /dev/mtdblock2 /mnt/
+cd /mnt/
+tar -xzvf /tmp/openwrt-ar71xx-rootfs.tgz
+cd ..
+umount /mnt/
+sync
+
+reboot
+
+The OS should be installed by now!
+
+Execute find . | grep channelbw
+You should not find anything!! 
+----------------------------------------------------------------------------------------------------------------------------
+
+Patch Instructions:
+
+Download the pacth file and paste it in 
+~/backfire_10.03/package/mac80211/patches/
+
+cd ~/backfire_10.03/
+make clean
+make V=99
+
+Once this is done, the new .elf file and new tar.gz file will contain the changes! 
+Repeat the procedure as above from Point A.
+
+--------------------------------------------------------------------------------------------------------------------------
+to verify that the patch has been implemented 
+find . | grep channelbw
+You should find something! 
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+

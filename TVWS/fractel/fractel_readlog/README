@@ -1,0 +1,40 @@
+fractel_readlog is the logger for fractel tdma code. Fractel tdma code logs information regrading different events in the kernel proc filesystem. The fractel_readlog copies these logs from the kernel proc filesystem and writes them onto a file in the disk.
+
+
+Here we list down the steps to compile the program using Openwrt kamikaze v8.09.
+
+Instructions for compiling
+---------------------------
+(i)First copy the folder fractel_readlog, containing the source code, in the  packages directory for the openwrt ie.
+
+	cp -R fractel_readlog /home/vsevani/openwrt/kamikaze_8.09/package
+
+(ii) For compiling, first select the program fractel_readlog in menuconfig, using following commands
+
+	cd /home/vsevani/openwrt/kamikaze_8.09
+	make menuconfig
+
+In the menu that appears, select the the option
+
+	Utilities --> fractel_readlog
+
+(iii) For compiling, execute the following command
+
+	cd /home/vsevani/openwrt/kamikaze_8.09
+	make V=99
+
+Insructions for installation
+-------------------------------
+The above procedure will generate an executable fractel_readlog at the following location /home/vsevani/build_dir/mips/fractel_readlog/ipkg/fractel_readlog/bin/fractel_readlog. Copy these executable in the system running openwrt at appropriate location say /home. Start the program using the following command
+	
+	/home/fractel_readlog /home/outfile &
+
+where /home/outfile is the file where logger will write all the events logged by fractel tdma code. Ensure that this program is started when the system boots. So typically run the above command from a startup script (as mentioned in fractel_tdma_source_code/fractel_tdma_code/README.TDMA.INSTALL), which gets executed when the system boots.
+
+NOTE:For compiling the program on laptop running linux, simply execute the following command
+
+	cd fractel_readlog/src
+	gcc -o fractel_readlog fractel_readlog.c
+
+Instructions for starting the program remain the same.
+	 

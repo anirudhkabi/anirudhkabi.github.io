@@ -1,0 +1,75 @@
+Instructions for compiling litmac code with backfire 10.03
+
+1. Download the backfire 10.03 source code from http://downloads.openwrt.org/backfire/10.03/backfire_10.03_source.tar.bz2
+
+2. Untar the above folder
+
+3. Run the command make kernel_menuconfig from the folder. Select the following option for Kernel type
+
+	Kernel type -> High Resolution Timer Support -> Timer frequency 1000 HZ
+
+4. Download all contents from the folder www.ee.iitb.ac.in/student/~gaurangnaik/projectwork/fractel
+
+5. Paste the Makefile in ~/backfire_10.03/package/madwifi
+
+6. Delete the contents of ~/backfire_10.03/package/madwifi/patches
+
+7. Paste the folders fractel_readlog/ and fractel_routing_daemon/ in ~/backfire_10.03/package
+
+8. Paste madwifi-trunk-r3314.tar.gz in ~/backfire_10.03/dl/
+
+9. Go to the directory ~/backfire_10.03/ and type: make menuconfig
+
+10. Go to Utilities-> Check on fractel_readlog and fractel_routing_daemon (Search the exact location by typing '/' and then search) 
+
+11. Start the make process by typing: make V=99
+
+12. Once the compilation is completed, transfer the kernel and rootfs files in the board and mount them.
+	- In a new terminal, go to ~/backfire_10.03/bin/ar71xx/
+
+	Point A: scp openwrt-ar71xx-vmlinux.elf openwrt-ar71xx-rootfs.tgz root@10.107.48.50:/tmp/
+	If scp if giving problems try: ssh-keygen -f "/root/.ssh/known_hosts" -R 10.107.48.50
+	----------------------------------------------------------------------------------------------------------------------------------------------------
+	At this point RB433AH has kernel image in its /tmp directory. To install OpenWRT on RB433AH run following set of commands
+
+	mount /dev/mtdblock1 /mnt/
+	mv /tmp/openwrt-ar71xx-vmlinux.elf /mnt/kernel
+	umount /mnt
+	mount /dev/mtdblock2 /mnt/
+	cd /mnt/
+	tar -xzvf /tmp/openwrt-ar71xx-rootfs.tgz
+	cd ..
+	umount /mnt/
+	sync
+
+	reboot
+
+	The OS should be installed by now!
+	---------------------------------------------------------------------------------------------------------------------------------------------------
+
+13. Before using the board, TDMA parameters neet to be configured. Refer README.TDMA.INSTALL - use files sample_files/config.cfg and sample_files/startup.sh
+
+14. Power ON the board 
+	- Comment the line disable in /etc/config/wireless
+
+
+	- Paste the files startup.sh, readlog and config.cfg in the path /root : scp sample_files/config.cfg sample_files/startup.sh root@10.107.48.50:/	
+	- Open /etc/rc.d/S99sysctl 
+	- Write the full path of the file to be loaded during startup - /root/startup.sh (Or, the actual path)
+
+	
+	- Make the file startup.sh executable by the following command: chmod +x /root/startup.sh
+	
+
+	- Edit the path of the config.cfg file in startup.sh (from /home/config.cfg to /root/config.cfg)
+	- Change all relevant paths 
+ 
+	- Edit config.cfg file
+		- Make node_id=0 (for root_node) & node_id=1 (or 2,3,4... for non-root_nodes)
+		- Make self_node_ip=____________ (IP in the same subnet as root_node) 
+		- Make root_ip= <ip address of root node>
+		- Check that wifi device is named properly in the file (the name should be wifi1 for RB411AR and not wifi0)
+		
+	- Reboot
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+

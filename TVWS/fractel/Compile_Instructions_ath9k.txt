@@ -1,0 +1,51 @@
+Instructions for compiling litmac code with backfire 10.03
+
+1. Download the backfire 10.03 source code from http://downloads.openwrt.org/backfire/10.03/backfire_10.03_source.tar.bz2
+
+2. Untar the above folder
+
+3. Run the command make kernel_menuconfig from the folder. Select the following option for Kernel type
+
+	Kernel type -> High Resolution Timer Support -> Timer frequency 1000 HZ
+
+4. Download the file http://www.cse.iitb.ac.in/~vsevani/phd/ath9k/compat-wireless-2010-03-24.tar.bz2.gpg
+
+5. Decrypt the file using the command
+
+	gpg compat-wireless-2010-03-24.tar.bz2.gpg
+
+The password to be used for decryption was sent in the mail.
+
+6. Copy the file compat-wireless-2010-03-24.tar.bz2 in the folder backfire_10.03/dl on your local machine
+
+7. Download the file http://www.cse.iitb.ac.in/~vsevani/phd/ath9k/Makefile and copy it in the folder backfire_10.03/package/mac80211 on your local machine.
+
+8. Delete the contents of the folder backfire_10.03/package/mac80211/patches
+
+9. Run the command make menuconfig from the directory backfire_10.03 on your local machine. Select the following options
+
+	Target System -> Atheros AR71xx/AR7240/AR913x
+	Target Profile -> Ubiquiti Products
+	Target Images -> squashfs
+	Kernel modules -> Wireless Drivers -> kmod-ath9k
+	Kernel modules -> Wireless Drivers -> ath9k debugging
+	Kernel modules -> Wireless Drivers -> use the new minstrel_ht rate control for ath9k
+	Kernel modules -> Wireless Drivers -> Export mac80211 internals in DebugFS
+
+10. Run make V=99 and the binaries for installing backfire will be generated in the folder backfire_10.03/bin/ar71xx/
+
+11. For configuring the wifi interface, copy the file below in the folder /etc/rc.d/ on the bullet boards
+
+	http://www.cse.iitb.ac.in/~vsevani/phd/ath9k/S99sysctl
+
+    Ensure that both root and non-root nodes have different IPs.
+
+12. As mentioned do not create the file /etc/litmac.conf
+
+13. Comment the line 
+
+	option disabled 1
+
+    in the file /etc/config/wireless on the bullet boards. Reboot and test.
+
+

@@ -1,0 +1,2 @@
+USE_INETD=false
+OPTIONS="--tftpd-timeout 300 --bind-address 10.107.48.210 --port 69 --retry-timeout 5 --mcast-port 1758 --logfile ~/log.txt --maxthread 100 /tftpboot"

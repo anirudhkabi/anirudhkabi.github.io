@@ -1,0 +1,40 @@
+fractel_routing_daemon is the program for updating routing table entries depending on the network topology. This program is only needed with the fractel tdma code with node join available at fractel_tdma_source_code/fractel_tdma_with_node_join_code.
+
+
+Here we list down the steps to compile the program using Openwrt kamikaze v8.09.
+
+Instructions for compiling
+---------------------------
+(i)First copy the folder fractel_routing_daemon, containing the source code, in the  packages directory for the openwrt ie.
+
+	cp -R fractel_routing_daemon /home/vsevani/openwrt/kamikaze_8.09/package
+
+(ii) For compiling, first select the program fractel_routing_daemon in menuconfig, using following commands
+
+	cd /home/vsevani/openwrt/kamikaze_8.09
+	make menuconfig
+
+In the menu that appears, select the the option
+
+	Utilities --> fractel_routing_daemon
+
+(iii) For compiling, execute the following command
+
+	cd /home/vsevani/openwrt/kamikaze_8.09
+	make V=99
+
+Insructions for installation
+-------------------------------
+The above procedure will generate an executable fractel_routing_daemon at the following location /home/vsevani/build_dir/mips/fractel_routing_daemon/ipkg/fractel_routing_daemon/bin/fractel_routing_daemon. Copy these executable in the system running openwrt at appropriate location say /home. Make a folder named /script under root directory. Copy the script, del_routes.sh (at fractel_routing_daemon/src/del_routes.sh) under the scripts directory. Then start the program using the following command
+	
+	/home/fractel_routing_daemon /home/routfile &
+
+where /home/routfile is the file where routing daemon will log it's output. Also ensure that this program is started when the system boots. So typically run the above command from a startup script (as mentioned in fractel_tdma_source_code/fractel_tdma_with_node_join_code/README.TDMA.INSTALL), which gets executed when the system boots.
+
+NOTE:For compiling the program on laptop running linux, simply execute the following command
+
+	cd fractel_routing_daemon/src
+	gcc -o fractel_routing_daemon fractel_routing_daemon.c
+
+Instructions for starting the program remain the same.
+	 

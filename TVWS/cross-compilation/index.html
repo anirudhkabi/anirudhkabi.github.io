@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>
+Cross-compilation of applications
+</title>
+</head>
+<body>
+<h2>Cross-compilation of applications</h2>
+<p>
+<a href="http://wiki.openwrt.org/doc/devel/crosscompile">OpenWrt page for cross-compilation</a>.
+</p>
+<p>
+There are a few good tutorials out there for cross-compilation of applications for your RB. 
+The steps given below are based on <a href="http://www.componentality.com/res/Step-By-Step-Instruction-To-Run-Apps-On-FlexRoad-HW.en.pdf">this tutorial</a>. Another good reference is <a href="http://www.ccs.neu.edu/home/noubir/Courses/CS6710/S12/material/OpenWrt_Dev_Tutorial.pdf">this tutorial</a>. However, not all steps worked for me in the first go, so I am providing my fix! 
+</p>
+
+<h3>Make your application on local machine</h3>
+<p> The first step is to make your application in C (or C++) and test it on your local machine. 
+The application I am using is a simple C socket based client and server application. 
+The source files and the corresponding Makefile for the <a href="sourcefiles/pawsserver/src/">server Makefile</a> and the <a href="sourcefiles/pawsclient/src/">client Makefile</a> are provided. <br/>
+Note that this Makefile is used for compilation of your program on the local machine. This Makefile is similar to the one described in <a href="http://www.componentality.com/res/Step-By-Step-Instruction-To-Run-Apps-On-FlexRoad-HW.en.pdf">this tutorial</a>.</br>
+Also note that We have not delved into the cross-compilation part yet! </br></br>
+
+Now, to check if these applications are indeed working on your system, download both files from <a href="sourcefiles/pawsserver/src/">server socket program</a> and <a href="sourcefiles/pawsclient/src/">client socket program</a> and run:
+
+<p style="background-color:lightgray">
+<i> make </br>
+</i> </p>
+
+<p>
+You will now have applications named "pawsmaster" and "pawsserver" in the respective directories. To check if they work correctly, in two separate terminals execute:
+
+<p style="background-color:lightgray">
+<i> ./pawsserver 5000</br>
+</i> </p>
+
+followed by: 
+
+<p style="background-color:lightgray">
+<i> ./pawsclient 127.0.0.1 5000 </br>
+</i> </p>
+
+If your output at the client side looks like the one shown below, you are on the right track! The client can keep sending messages to the server and the server keeps responding with a fixed message. You can exit by executing 'Ctrl+c' at the server followed by the client.
+<pre style="background-color:lightgray">
+Please enter the message: hi
+I am Optimus Prime & I got your message
+Please enter the message: Bye
+I am Optimus Prime & I got your message
+Please enter the message: 
+</pre>
+
+You are now good to move on to the next section.
+</p>
+
+
+<h3>Cross compilation</h3>
+<p> Our objective is to make <i>.ipk</i> files for the client and the server that can be installed on your OpenWrt RB.
+</p>
+
+<p>
+For this, you need to create Makefiles for OpenWrt. These have been described in <a href="http://www.componentality.com/res/Step-By-Step-Instruction-To-Run-Apps-On-FlexRoad-HW.en.pdf">this tutorial</a>. The Makefile for the  <a href="sourcefiles/pawsserver/Makefile">server OpenWrt Makefile</a> or <a href="sourcefiles/pawsclient/Makefile">client OpenWrt Makefile</a> are provided. I won't go into the details of creating this Makefile as I am no expert on this.
+</p>
+
+<p>
+To cross-compile the applications for OpenWrt, these packages need to be visible in 'make menuconfig'. 
+First download the entire server and client sourcefile directories from <a href="sourcefiles/">here</a> and paste the "pawsmaster" and "pawsclient" directories in the package directory (<i>~/openwrt/attitude_adjustment/package</i> assuming your openwrt buildroot directory is ~/openwrt/attitude_adjustment) of openwrt. Each sourcefile directory must have one Makefile and a directory named "src" containing the .c file and the Makefile.
+</br></br>
+Execute the following set of commands. They are self explanatory.
+<pre style="background-color:lightgray">
+cd ~/openwrt/attitude_adjustment
+rm -rf tmp/
+make menuconfig
+</pre>
+<p> pawsserver and pawsclient will now appear under "Utilities" section. Select both these packages by pressing y. </p>
+<p>
+Now, for the last part, i.e. actual cross-compilation, execute:
+<pre style="background-color:lightgray">
+make package/pawsserver/compile V=s
+make package/pawsclient/compile V=s
+</pre>
+</p>
+<p>
+The <i>.ipk</i> files will be generated in the <i>~/openwrt/attitude_adjustment/bin/ar71xx/packages</i> directory. 
+The <i>pawsclient_0-1_ar71xx.ipk</i> and <i>pawsserver_0-1_ar71xx.ipk</i> files can be copied to your OpenWrt RB and installed
+using:
+<pre style="background-color:lightgray">
+opkg install pawsclient_0-1_ar71xx.ipk
+opkg install pawsserver_0-1_ar71xx.ipk
+</pre>
+The pawsserver and pawsclient binaries will be installed on your OpenWrt RB and can be executed as:
+<p style="background-color:lightgray">
+<i> pawsserver 5000</br>
+</i> </p>
+followed by:
+<p style="background-color:lightgray">
+<i> pawsclient 127.0.0.1 5000 </br>
+</i> </p>
+
+That's it folks!
+</p>
+<hr/>
+<p align="right"> <i> Page maintained by <a href=https://www.ee.iitb.ac.in/student/~gaurangnaik/>Gaurang Naik</a>.<i></p>
+<hr/>
+
+</body>
+</html>

@@ -1,0 +1,295 @@
+------------------------------------------------------------
+Server listening on UDP port 5004
+Receiving 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 44830
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.9 sec  2.59 MBytes  2.00 Mbits/sec  15.981 ms    0/ 1846 (0%)
+[  3]  0.0-10.9 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 46647
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.1 sec  2.61 MBytes  1.98 Mbits/sec  18.903 ms    0/ 1861 (0%)
+[  3]  0.0-11.1 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 37878
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.5 sec  2.65 MBytes  1.94 Mbits/sec  17.037 ms    0/ 1891 (0%)
+[  3]  0.0-11.5 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 47577
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.4 sec  2.63 MBytes  1.94 Mbits/sec  16.095 ms    0/ 1877 (0%)
+[  3]  0.0-11.4 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 60879
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.2 sec  2.59 MBytes  1.94 Mbits/sec  16.729 ms    0/ 1850 (0%)
+[  3]  0.0-11.2 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 40590
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.1 sec  2.58 MBytes  1.95 Mbits/sec  16.925 ms    0/ 1840 (0%)
+[  3]  0.0-11.1 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.1, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 54122 connected with 192.168.1.1 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.72 MBytes  2.28 Mbits/sec
+[  3] Sent 1938 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.1 sec  2.72 MBytes  2.05 Mbits/sec  6.410 ms    1/ 1939 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 55728
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.4 sec  2.64 MBytes  1.93 Mbits/sec  15.347 ms    0/ 1881 (0%)
+[  3]  0.0-11.4 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.1, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 40871 connected with 192.168.1.1 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.1 sec  2.68 MBytes  2.22 Mbits/sec
+[  3] Sent 1909 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.9 sec  2.68 MBytes  2.06 Mbits/sec  17.713 ms    1/ 1910 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 37185
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.0 sec  2.61 MBytes  1.99 Mbits/sec  15.798 ms    0/ 1860 (0%)
+[  3]  0.0-11.0 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.1, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 60423 connected with 192.168.1.1 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.2 sec  2.70 MBytes  2.22 Mbits/sec
+[  3] Sent 1925 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.7 sec  2.70 MBytes  2.11 Mbits/sec  16.216 ms    1/ 1926 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 38952
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.0 sec  2.58 MBytes  1.96 Mbits/sec  17.870 ms    0/ 1838 (0%)
+[  3]  0.0-11.0 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.1, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 35525 connected with 192.168.1.1 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.67 MBytes  2.24 Mbits/sec
+[  3] Sent 1905 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.9 sec  2.67 MBytes  2.06 Mbits/sec  16.251 ms    1/ 1906 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.1 port 36310
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.1 sec  2.59 MBytes  1.96 Mbits/sec  17.646 ms    0/ 1849 (0%)
+[  3]  0.0-11.1 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.1, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 55822 connected with 192.168.1.1 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.70 MBytes  2.27 Mbits/sec
+[  3] Sent 1927 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.0 sec  2.70 MBytes  2.06 Mbits/sec  10.778 ms    1/ 1928 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 43557
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.2 sec  2.47 MBytes  2.03 Mbits/sec  17.513 ms    1/ 1762 (0.057%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 53302
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.2 sec  2.42 MBytes  1.99 Mbits/sec  18.540 ms    1/ 1729 (0.058%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 44073
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.46 MBytes  2.01 Mbits/sec  16.639 ms    1/ 1756 (0.057%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 36540
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.2 sec  2.47 MBytes  2.04 Mbits/sec  16.245 ms    1/ 1765 (0.057%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 39854
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.46 MBytes  2.00 Mbits/sec  23.007 ms    1/ 1753 (0.057%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 40967
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.46 MBytes  2.01 Mbits/sec  9.770 ms    1/ 1756 (0.057%)
+------------------------------------------------------------
+Client connecting to 192.168.1.3, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 55191 connected with 192.168.1.3 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.1 sec  2.70 MBytes  2.24 Mbits/sec
+[  3] Sent 1926 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.70 MBytes  2.20 Mbits/sec  15.743 ms    1/ 1927 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 58183
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.48 MBytes  2.03 Mbits/sec  14.205 ms    1/ 1772 (0.056%)
+------------------------------------------------------------
+Client connecting to 192.168.1.3, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 51429 connected with 192.168.1.3 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.69 MBytes  2.25 Mbits/sec
+[  3] Sent 1918 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.2 sec  2.69 MBytes  2.22 Mbits/sec  15.429 ms    1/ 1919 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 43792
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.47 MBytes  2.01 Mbits/sec  19.248 ms    1/ 1764 (0.057%)
+------------------------------------------------------------
+Client connecting to 192.168.1.3, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 41420 connected with 192.168.1.3 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.1 sec  2.69 MBytes  2.24 Mbits/sec
+[  3] Sent 1917 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.69 MBytes  2.20 Mbits/sec  16.559 ms    1/ 1918 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 53692
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.48 MBytes  2.01 Mbits/sec  16.086 ms    1/ 1769 (0.057%)
+------------------------------------------------------------
+Client connecting to 192.168.1.3, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 45048 connected with 192.168.1.3 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.65 MBytes  2.22 Mbits/sec
+[  3] Sent 1891 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.2 sec  2.65 MBytes  2.18 Mbits/sec  16.310 ms    1/ 1892 (0.053%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.3 port 59465
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.46 MBytes  2.00 Mbits/sec  18.138 ms    1/ 1756 (0.057%)
+------------------------------------------------------------
+Client connecting to 192.168.1.3, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 46697 connected with 192.168.1.3 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.2 sec  2.69 MBytes  2.22 Mbits/sec
+[  3] Sent 1919 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-10.3 sec  2.69 MBytes  2.19 Mbits/sec  16.264 ms    1/ 1920 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 45808
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.4 sec  2.61 MBytes  1.92 Mbits/sec  19.182 ms    0/ 1864 (0%)
+[  3]  0.0-11.4 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 57166
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.2 sec  2.62 MBytes  1.96 Mbits/sec  17.056 ms    0/ 1867 (0%)
+[  3]  0.0-11.2 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 59108
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.2 sec  2.59 MBytes  1.93 Mbits/sec  17.423 ms    0/ 1844 (0%)
+[  3]  0.0-11.2 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 51801
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.1 sec  2.59 MBytes  1.96 Mbits/sec  19.249 ms    0/ 1846 (0%)
+[  3]  0.0-11.1 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 58291
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.3 sec  2.64 MBytes  1.96 Mbits/sec  15.132 ms    0/ 1882 (0%)
+[  3]  0.0-11.3 sec  1 datagrams received out-of-order
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 42325
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.3 sec  2.62 MBytes  1.95 Mbits/sec  18.018 ms    0/ 1869 (0%)
+[  3]  0.0-11.3 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.4, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 50067 connected with 192.168.1.4 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.2 sec  2.66 MBytes  2.19 Mbits/sec
+[  3] Sent 1894 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.2 sec  2.66 MBytes  1.98 Mbits/sec  17.521 ms    1/ 1895 (0.053%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 54247
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.0 sec  2.56 MBytes  1.95 Mbits/sec  16.182 ms    0/ 1827 (0%)
+[  3]  0.0-11.0 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.4, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 44766 connected with 192.168.1.4 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.66 MBytes  2.23 Mbits/sec
+[  3] Sent 1896 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.0 sec  2.66 MBytes  2.02 Mbits/sec  16.601 ms    1/ 1897 (0.053%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 59977
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.2 sec  2.61 MBytes  1.96 Mbits/sec  17.512 ms    0/ 1860 (0%)
+[  3]  0.0-11.2 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.4, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 32914 connected with 192.168.1.4 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  2.68 MBytes  2.25 Mbits/sec
+[  3] Sent 1913 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.3 sec  2.68 MBytes  1.99 Mbits/sec  15.385 ms    1/ 1914 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 56538
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.2 sec  2.60 MBytes  1.95 Mbits/sec  19.415 ms    0/ 1855 (0%)
+[  3]  0.0-11.2 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.4, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 44476 connected with 192.168.1.4 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.1 sec  2.68 MBytes  2.23 Mbits/sec
+[  3] Sent 1910 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.1 sec  2.68 MBytes  2.03 Mbits/sec  13.321 ms    1/ 1911 (0.052%)
+[  3] local 192.168.1.2 port 5004 connected with 192.168.1.4 port 40284
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.0 sec  2.58 MBytes  1.97 Mbits/sec  16.434 ms    0/ 1840 (0%)
+[  3]  0.0-11.0 sec  1 datagrams received out-of-order
+------------------------------------------------------------
+Client connecting to 192.168.1.4, UDP port 5004
+Sending 1470 byte datagrams
+UDP buffer size:   108 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.2 port 40762 connected with 192.168.1.4 port 5004
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.1 sec  2.67 MBytes  2.23 Mbits/sec
+[  3] Sent 1907 datagrams
+[  3] Server Report:
+[ ID] Interval       Transfer     Bandwidth       Jitter   Lost/Total Datagrams
+[  3]  0.0-11.1 sec  2.67 MBytes  2.01 Mbits/sec  16.014 ms    1/ 1908 (0.052%)

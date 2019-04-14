@@ -1,0 +1,34 @@
+<html>
+<head>
+<title>
+Network and Wireless Configuration
+</title>
+</head>
+<body>
+<h3>Network and Wireless Configuration</h3>
+<p>
+Once the OpenWrt OS is installed on RB, all that remains in order to get the RB working as a Wireless AP is configuration of its network and wireless parameters. This is done using two files <b>/etc/config/network</b> and <b>/etc/config/wireless</b></p>
+
+<b>Disable DHCP Server</b></br>
+<p> OpenWrt, by default, leases DHCP on its LAN interface. First and foremost, we need to disable this: </br>
+File: <b>/etc/config/dhcp </b> </p>
+Add "option ignore 1" at the end of "config dhcp lan" section.
+<pre style="background-color:lightgray">
+...
+config dhcp lan                                           
+        option interface        lan                       
+        option start    100                               
+        option limit    150                   
+        option leasetime        12h           
+        <b>option ignore 1 </b>
+...
+</pre>
+
+<p> <a href="bridge.html"><b>Bridged AP Mode</b></a> </p>
+<p> <a href="routed.html"><b>Routed AP Mode</b></a> </p>
+<p> <a href="routed_client.html"><b>Routed Client Mode</b></a> </p>
+<hr/>
+<p align="right"> <i> Page maintained by <a href=https://www.ee.iitb.ac.in/student/~gaurangnaik/>Gaurang Naik</a>.<i></p>
+<hr/>
+</body>	
+</html>	

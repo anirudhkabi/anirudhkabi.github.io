@@ -1,0 +1,112 @@
+<html>
+<head>
+<title> Basic Configuration of RB with OpenWrt</title>
+</head
+<body>
+<hr />
+<h2> Basic Configuration of RB with OpenWrt </h2>
+<b> Compilation of image </b> </br>
+
+<p> For a detailed discussion on the compilation of OpenWrt image refer <a href="http://wiki.openwrt.org/doc/howto/build">Compilation from trunk</a>.</p>
+<p> Steps described below are generic and can be used for compilation of any OpenWrt OS. There might be minor changes in what packages to select depending on the OS you want to compile. The steps given below are for OpenWrt Backfire. </p>
+
+<li> Download Backfire 10.03 from <a href="http://downloads.openwrt.org/backfire/10.03/backfire_10.03_source.tar.bz2">Sourcefile-Backfire</a> (<a href="attitude_adjustment.tar.gz">Sourcefile-Attitude_Adjustment</a>). </li>
+<li> Untar the file and copy it in home folder and execute the following commands:</br>
+<p style="background-color:lightgray">
+<i> cd backfire_10.03 </br>
+make menuconfig </br>
+Select the following components:</br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Target: AR71XXX</br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default: no WiFi</br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Generate tar.gz, squashfs</br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Wireless Modules: ath5k (Make sure it is selected as '*' and not 'm' - double space bar)</br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wpa</br></br>
+make V=99
+</i> </p></li>
+<hr/>
+<p>
+<b> Precompiled images </b> </br>
+I have compiled a few images for specific purposes. They can be found <a href="https://www.ee.iitb.ac.in/student/~gaurangnaik/TVWS/">here</a>.
+</p>
+
+<hr/>
+<b>Install and Configure DHCP and TFTP Server on local system</b>
+</br>
+
+<p style="background-color:lightgray">
+sudo apt-get install atftpd </br>
+sudo apt-get install dhcp3-server </br>
+sudo mkdir /tftpboot </br>
+sudo cp vmlinux /tftpboot/vmlinux (Get this ramdisk file <a href="http://www.ee.iitb.ac.in/student/~gaurangnaik/TVWS/vmlinux">here</a>) </br>
+sudo atftpd --bind-address 10.107.48.210 --logfile ~/log  --daemon</br>
+</p>
+For some reason this doesn't seem to work in Ubuntu 14.04.
+</br>
+Use this instead:
+<li> Copy <a href="atftpd">this file</a> in the '/etc/default' directory. </li>
+<li> To check if the atftpd server has started properly, check /var/log/syslog. Most probably, there will be an error stating can not bind to port 69. This is because there is already a process (inetd) running on this port. </li>
+<li> To check exactly which process running, execute 'sudo netstat -nlp | grep 69' </li>
+<li> Kill the process using 'sudo killall "processname"' </li>
+
+</br>
+- configure file /etc/dhcp/dhcpd.conf file appropriately (<a href="dhcpd.conf">sample</a>), and then start dhcpd via the command:
+<p style="background-color:lightgray">sudo dhcpd -cf /etc/dhcp/dhcpd.conf --no-pid  eth0 </p>
+<hr/>
+
+<b> Network Boot and Flashing image </b> <br/>
+<p> Switch ON RB and enable network boot. To do this, interrupt normal boot process by pressing a key before the RB boots up.</p>
+
+Once the device boots, execute the following: </br>
+<p style="background-color:lightgray"> <i>
+ifconfig br-lan down</br>
+brctl delbr br-lan</br>
+ifconfig eth0 10.107.48.50</br>
+passwd</br>
+(Set Password)</i> </p>
+
+<p>In a new terminal, execute </p>
+<p style="background-color:lightgray"> cd ~/backfire_10.03/bin/ar71xx/ <br/>
+scp openwrt-ar71xx-vmlinux.elf openwrt-ar71xx-rootfs.tgz root@10.107.48.50:/tmp/ </p>
+
+If scp if giving problems try: 
+<p style="background-color:lightgray"> ssh-keygen -f "/root/.ssh/known_hosts" -R 10.107.48.50 </p>
+
+
+<p>At this point RB433AH has kernel image in its /tmp directory. To flash a permanent image of OpenWrt on RB433AH NAND, run following set of commands</p>
+<i>
+<p style="background-color:lightgray">
+mount /dev/mtdblock1 /mnt/</br>
+mv /tmp/openwrt-ar71xx-vmlinux.elf /mnt/kernel</br>
+umount /mnt</br>
+mount /dev/mtdblock2 /mnt/</br>
+cd /mnt/</br>
+tar -xzvf /tmp/openwrt-ar71xx-rootfs.tgz</br>
+cd ..</br>
+umount /mnt/</br>
+sync</br>
+</br>
+reboot
+</i>
+</p>
+<p>If all steps are executed correctly, the OS should be installed by now! </p>
+
+<hr/>
+
+<b> Configuration </b>
+
+<p> Now that the RB boards have the OpenWrt OS flashed in the NAND, they are ready for operation. Check <a href="config.html">this file</a> for configuration of the boards. </p>
+
+<hr />
+
+<b> OpenNMS </b> <br/>
+
+<p>To use OpenNMS in your system, check <a href="nms.html">this page</a>.</p>
+
+<hr/>
+<p> <a href="https://www.ee.iitb.ac.in/student/~gaurangnaik/files/mcs.pdf">IEEE 802.11g MCS Scheme</a></p>
+
+<hr/>
+<p align="right"> <i> Page maintained by <a href=https://www.ee.iitb.ac.in/student/~gaurangnaik/>Gaurang Naik</a>.<i></p>
+<hr/>
+</body>
+</html>

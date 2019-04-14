@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>
+TV White Space Information Page
+</title>
+</head>
+
+<body>
+<h3>Webpages</h3>
+<p> <a href="https://www.ee.iitb.ac.in/tvws">TV White Space Project Webpage</a> </br>
+<a href="https://www.ee.iitb.ac.in/iwsd">India White Space Database</a> </p> 
+
+<h3>Resources</h3>
+
+<p> 
+<li> We use the Mikrotik RouterBoard433AH with OpenWrt versions Attitude Adjustment or Backfire for setting up our network. Refer <a href="configuration/">Basic Configuration of RB 433AH</a> for a detailed overview on how to compile the OpenWrt OS and setup the RB433AH to operate as an STA or AP.</li>
+</p>
+<p>
+<li> Applications that you write for your machine won't work on the RB. The RB moreover does not have a compiler. So, if you want to build a custom binary for your RB, you will need to cross-compile your application. Refer to <a href="cross-compilation/">Steps for cross-compilation of applications</a> for details.</li>
+</p>
+<p>
+<li> <a href="http://frottle.sourceforge.net">Frottle</a> is an open source GNU GPL project to control traffic on wireless networks that helps in eliminating the Hidden-node effect on your terminals. For steps on compilation of frottle package from the source code for OpenWrt and related issues refer <a href="frottle/">Compilation and configuration of Frottle</a> </li>
+</p>
+
+<li><a href="test-bed/">The Palghar Test-bed</a></li>
+
+<h3> Compiled Images </h3>
+
+<p> <li> <a href="images/attitude_adjust_csma/">Basic Image</a> <br/>
+Attitude Adjustment 12.09 image for RouterBoard433AH with basic CSMA. </li>
+</p>
+
+<p><li>
+<a href="images/freq_changed/">Frequency modified</a> </br>
+A part of my project required me to modify the compat-wireless drivers to modify the WiFi Channel 1 frequency from 2412 MHz to 2382 MHz. Refer <a href="https://forum.openwrt.org/viewtopic.php?id=50609">this page</a> for details.
+</li></p>
+
+<p> <li>
+<a href="vmlinux">Ramdisk</a></br>
+The Ramdisk image used for netboot.
+</li></p> 
+
+
+<h3> Requisite IPK files </h3>
+Here are some of theIPK files that were needed for various experimentation! Extract the tar file and execute the corresponding script! </br>
+<a href="ipk/IPERF.tar.gz">IPERF</a> </br>
+<a href="ipk/SNMP.tar.gz">SNMP</a> </br>
+<a href="ipk/UI.tar.gz">User Interface</a> </br>
+<a href="ipk/frottle.tar.gz">Frottle</a> </br>
+
+<hr/>
+<p align="right"> <i>Page maintained by <a href=https://www.ee.iitb.ac.in/student/~gaurangnaik/>Gaurang Naik</a>.<i></p>
+<hr/>
+</body>
+</html>

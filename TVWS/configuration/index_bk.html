@@ -1,0 +1,151 @@
+<html>
+Download Backfire 10.03 from 
+<a href="http://downloads.openwrt.org/backfire/10.03/backfire_10.03_source.tar.bz2">Sourcefile</a>
+</br>
+</br>
+Untar the file and copy it in home folder
+</br>
+</br>
+cd backfire_10.03
+</br>
+make menuconfig
+</br>
+Select the following components:
+</br>
+		Target: AR71XXX
+</br>
+		Default: no WiFi
+</br>
+		Generate tar.gz, squashfs
+</br>
+		Wireless Modules: ath5k (Make sure it is selected as '*' and not 'm' - double space bar)
+</br>
+		wpa
+</br>
+
+</br>
+make V=99
+</br>
+---------------------------------------------------------------------------------------------------------------------------	
+</br>
+<b>Install and Configure DHCP and TFTP Server</b>
+</br>
+</br>
+
+sudo apt-get install atftpd
+</br>
+sudo apt-get install dhcp3-server
+</br>
+sudo mkdir /tftpboot
+</br>
+</br>
+sudo cp vmlinux /tftpboot/vmlinux (Get this ramdisk file <a href="http://www.ee.iitb.ac.in/student/~gaurangnaik/projectwork/vmlinux">here</a>)
+</br>
+
+sudo atftpd --bind-address 10.107.48.210 --logfile ~/log  --daemon
+</br>
+</br>
+For some reason this doesn't seem to work in Ubuntu 14.04.
+</br>
+Use this instead:
+<li> Copy <a href="http://www.ee.iitb.ac.in/student/~gaurangnaik/projectwork/files/atftpd">this file</a> in the '/etc/default' directory. </li>
+<li> To check if the atftpd server has started properly, check /var/log/syslog. Most probably, there will be an error stating can not bind to port 69. This is because there is already a process (inetd) running on this port. </li>
+<li> To check exactly which process running, execute 'sudo netstat -nlp | grep 69' </li>
+<li> Kill the process using 'sudo killall "processname"' </li>
+
+</br>
+- configure file /etc/dhcp/dhcpd.conf file appropriately (<a href="http://www.ee.iitb.ac.in/student/~gaurangnaik/projectwork/files/dhcpd.conf">sample</a>), and then start dhcpd via the command
+</br>
+sudo dhcpd -cf /etc/dhcp/dhcpd.conf --no-pid  eth0
+</br>
+---------------------------------------------------------------------------------------------------------------------------
+</br>
+Switch ON RB and enable network boot
+</br>
+
+</br>
+Once the device boots, execute the following: 
+</br>
+
+</br>
+ifconfig br-lan down
+</br>
+brctl delbr br-lan
+</br>
+ifconfig eth0 10.107.48.50
+</br>
+passwd
+</br>
+<Set Password>
+</br>
+---------------------------------------------------------------------------------------------------------------------------
+</br>
+In a new terminal, go to ~/backfire_10.03/bin/ar71xx/
+
+</br>
+Point A: scp openwrt-ar71xx-vmlinux.elf openwrt-ar71xx-rootfs.tgz root@10.107.48.50:/tmp/
+</br>
+If scp if giving problems try: ssh-keygen -f "/root/.ssh/known_hosts" -R 10.107.48.50
+</br>
+------------------------------------------------------------------
+</br>
+At this point RB433AH has kernel image in its /tmp directory. To install OpenWRT on RB433AH run following set of commands
+</br>
+
+</br>
+mount /dev/mtdblock1 /mnt/
+</br>
+mv /tmp/openwrt-ar71xx-vmlinux.elf /mnt/kernel
+</br>
+umount /mnt
+</br>
+mount /dev/mtdblock2 /mnt/
+</br>
+cd /mnt/
+</br>
+tar -xzvf /tmp/openwrt-ar71xx-rootfs.tgz
+</br>
+cd ..
+</br>
+umount /mnt/
+</br>
+sync
+</br>
+
+</br>
+reboot
+</br>
+
+</br>
+The OS should be installed by now!
+</br>
+Check <a href="config.txt">this file</a> for configuration.
+</br>
+</br>
+Execute find . | grep channelbw
+</br>
+You should not find anything!! 
+</br>
+----------------------------------------------------------------------------------------------------------------------------
+</br>
+
+Patch Instructions:
+
+Download the pacth file and paste it in 
+~/backfire_10.03/package/mac80211/patches/
+
+cd ~/backfire_10.03/
+make clean
+make V=99
+
+Once this is done, the new .elf file and new tar.gz file will contain the changes! 
+Repeat the procedure as above from Point A.
+
+--------------------------------------------------------------------------------------------------------------------------
+to verify that the patch has been implemented 
+find . | grep channelbw
+You should find something! 
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+</html>

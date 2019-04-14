@@ -1,0 +1,1342 @@
+diff -Naur compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/ath5k.h compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/ath5k.h
+--- compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/ath5k.h	2010-03-26 19:25:50.000000000 +0100
++++ compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/ath5k.h	2010-08-28 19:10:42.000000000 +0200
+@@ -1214,6 +1214,13 @@
+ void ath5k_hw_release_tx_queue(struct ath5k_hw *ah, unsigned int queue);
+ int ath5k_hw_reset_tx_queue(struct ath5k_hw *ah, unsigned int queue);
+ int ath5k_hw_set_slot_time(struct ath5k_hw *ah, unsigned int slot_time);
++/*&&&*/
++extern unsigned int ath5k_hw_get_slot_time(struct ath5k_hw *ah);
++extern int ath5k_hw_set_eifs(struct ath5k_hw *ah, int mode, unsigned int slot_time);
++extern int ath5k_hw_set_ack_timeout(struct ath5k_hw *ah, unsigned int timeout);
++extern unsigned int ath5k_hw_get_ack_timeout(struct ath5k_hw *ah);
++extern int ath5k_hw_set_cts_timeout(struct ath5k_hw *ah, unsigned int timeout);
++extern unsigned int ath5k_hw_get_cts_timeout(struct ath5k_hw *ah);
+ 
+ /* Hardware Descriptor Functions */
+ int ath5k_hw_init_desc_functions(struct ath5k_hw *ah);
+@@ -1275,7 +1282,6 @@
+ /*
+  * Functions used internaly
+  */
+-
+ static inline struct ath_common *ath5k_hw_common(struct ath5k_hw *ah)
+ {
+         return &ah->common;
+diff -Naur compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/base.c compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/base.c
+--- compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/base.c	2010-03-26 19:25:51.000000000 +0100
++++ compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/base.c	2010-08-29 11:08:26.000000000 +0200
+@@ -47,6 +47,9 @@
+ #include <linux/io.h>
+ #include <linux/netdevice.h>
+ #include <linux/cache.h>
++/*&&&+++*/
++#include <linux/sysctl.h>
++/*&&&---*/
+ #include <linux/pci.h>
+ #include <linux/ethtool.h>
+ #include <linux/uaccess.h>
+@@ -188,6 +191,10 @@
+ 	/* XR missing */
+ };
+ 
++/*&&&*/
++static int register_sysctls (struct ath5k_softc*);
++static int unregister_sysctls (struct ath5k_softc*);
++
+ /*
+  * Prototypes - PCI stack related functions
+  */
+@@ -305,8 +312,9 @@
+ 	.bss_info_changed = ath5k_bss_info_changed,
+ 	.sw_scan_start	= ath5k_sw_scan_start,
+ 	.sw_scan_complete = ath5k_sw_scan_complete,
++/* disable coverage class - we use proprietary means to adjust this stuff...
+ 	.set_coverage_class = ath5k_set_coverage_class,
+-};
++*/};
+ 
+ /*
+  * Prototypes - Internal functions
+@@ -892,6 +900,9 @@
+ 
+ 	ath5k_init_leds(sc);
+ 
++/*&&&&*/
++	register_sysctls(sc);
++
+ 	return 0;
+ err_queues:
+ 	ath5k_txq_release(sc);
+@@ -908,6 +919,9 @@
+ {
+ 	struct ath5k_softc *sc = hw->priv;
+ 
++/*&&&&*/
++	unregister_sysctls(sc);
++
+ 	/*
+ 	 * NB: the order of these is important:
+ 	 * o call the 802.11 layer before detaching ath5k_hw to
+@@ -958,6 +972,7 @@
+  */
+ static bool ath5k_is_standard_channel(short chan)
+ {
++#if 0
+ 	return ((chan <= 14) ||
+ 		/* UNII 1,2 */
+ 		((chan & 3) == 0 && chan >= 36 && chan <= 64) ||
+@@ -965,6 +980,22 @@
+ 		((chan & 3) == 0 && chan >= 100 && chan <= 140) ||
+ 		/* UNII-3 */
+ 		((chan & 3) == 1 && chan >= 149 && chan <= 165));
++#else
++/* IARU Region 1:
++ *  5650 - 5850 MHz - allow 5MHz channel raster for HAM-Radio operation
++ */
++		/* 2.4 GHz */
++	return ((chan <= 14) ||
++		/* UNII 1,2 */
++		((chan & 3) == 0 && chan >= 36 && chan <= 64) ||
++		/* midband */
++		((chan & 3) == 0 && chan >= 100 && chan <= 140) ||
++		/* UNII-3 */
++		((chan & 3) == 1 && chan >= 149 && chan <= 165) ||
++		/* 5650: channel 130, 5850: channel 170 - allow 5MHz raster */
++		(chan >= 130 && chan <= 170)
++		);
++#endif
+ }
+ 
+ static unsigned int
+@@ -1328,6 +1359,11 @@
+ 	if (info->flags & IEEE80211_TX_CTL_NO_ACK)
+ 		flags |= AR5K_TXDESC_NOACK;
+ 
++	/* hack to disable ACKs - tell chipset to not expect an ACK for this frame */
++	if (sc->noacks) {
++		flags |= AR5K_TXDESC_NOACK;
++	}
++
+ 	rc_flags = info->control.rates[0].flags;
+ 	hw_rate = (rc_flags & IEEE80211_TX_RC_USE_SHORT_PREAMBLE) ?
+ 		rate->hw_value_short : rate->hw_value;
+@@ -3424,3 +3460,504 @@
+ 	ath5k_hw_set_coverage_class(sc->ah, coverage_class);
+ 	mutex_unlock(&sc->lock);
+ }
++
++/*&&&&--------------------------------------------------------
++sysctl stuff beyond this point
++*/
++enum {
++	/* IN: int, OUT: int */
++	ATH_SYSCTL_CHANNELBW		= 1,
++	ATH_SYSCTL_ACKTIMEOUT		= 2,
++	ATH_SYSCTL_CTSTIMEOUT		= 3,
++	ATH_SYSCTL_SLOTTIME		= 4,
++	ATH_SYSCTL_DISTANCE		= 5,
++	ATH_SYSCTL_NOACKS		= 6,
++	ATH_SYSCTL_NOISEFLOOR		= 7,
++	/* IN: int, OUT: char* */
++	ATH_SYSCTL_ANTSWITCHING		= 101,
++	/* IN: char*, OUT: char* */
++	ATH_SYSCTL_INFO			= 201,
++	ATH_SYSCTL_REGDUMP		= 202,
++};
++
++/* sysctl handler */
++static int
++ATH_SYSCTL_DECL(ath_sysctl, ctl, write, filp, buffer, lenp, ppos)
++{
++#define NUM_ANT_MODES	7
++#define VAL_S_SIZE	1024
++	struct ath5k_softc *sc = ctl->extra1;
++	uint val;
++	char val_s[VAL_S_SIZE];
++	int ret = 0;
++
++	if (!sc) return -EINVAL;
++
++	mutex_lock(&sc->lock);
++
++	if (write) {
++		/* ID > 200 operate on strings, see above */
++		if ((long)ctl->extra2 > 200) {
++			ctl->data = val_s;
++			ctl->maxlen = VAL_S_SIZE * sizeof(char);
++			ret = ATH_SYSCTL_PROC_DOSTRING(ctl, write, filp, buffer, 
++				lenp, ppos);
++		} else {
++			ctl->data = &val;
++			ctl->maxlen = sizeof(val);
++			ret = ATH_SYSCTL_PROC_DOINTVEC(ctl, write, filp, buffer, 
++				lenp, ppos);
++		}
++		if (ret == 0) {
++			switch ((long)ctl->extra2) {
++			case ATH_SYSCTL_CHANNELBW:
++				if (val > 0) {
++					switch(val) {
++					case 5:
++					case 10:
++					case 20:
++						sc->channelbw=val;
++						break;
++					default:
++						ret =  -EINVAL;
++						break;
++					}
++				}
++				break;
++			case ATH_SYSCTL_ACKTIMEOUT:
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set ack timeout: %i\n", val);
++				if ( (sc && sc->ah) &&		   /* 0...8.192ms - guess... */
++				     (val >= 0) && (val <= AR5K_TIME_OUT_ACK) ) { /* 0x1fff mask in chip    */
++					sc->ack_timeout = val;
++					ret = ath5k_hw_set_ack_timeout(sc->ah, val);
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set ack timeout ret=%i\n", ret);
++				} else { ret = -EINVAL; }
++				break;
++			case ATH_SYSCTL_CTSTIMEOUT:
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set cts timeout: %i\n", val);
++				if ( (sc && sc->ah) &&		   /* 0...8.192ms - guess... */
++				     (val >= 0) && (val <= AR5K_TIME_OUT_ACK) ) { /* 0x1fff mask in chip    */
++					sc->cts_timeout = val;
++					ret = ath5k_hw_set_cts_timeout(sc->ah, val);
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set cts timeout ret=%i\n", ret);
++				} else { ret = -EINVAL; }
++				break;
++			case ATH_SYSCTL_SLOTTIME:
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set slottime: %i\n", val);
++				if ( (sc && sc->ah) &&
++				     (val >= 0) && (val <= AR5K_SLOT_TIME_MAX) ) { /* 0xffff mask in qcu.c   */
++					sc->slottime = val;
++					ret = ath5k_hw_set_slot_time(sc->ah, val);
++					if (sc->curchan) ath5k_reset(sc, sc->curchan); /* required to re-set eifs */
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set slottime ret=%i\n", ret);
++				} else { ret = -EINVAL; }
++				break;
++			case ATH_SYSCTL_DISTANCE:
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set distance: %i\n", val);
++				if (val <= 0) { sc->distance = 0; }
++				else if (sc && sc->ah) {
++					/* Some magic is explained here:
++					 * http://www.air-stream.org.au/ACK_Timeouts
++					*/
++					/* distance to slottime: */
++					int c = 300;	/* Speed of light in vacuum in m/us. */ 
++					int aAirPropagationTime;
++					int defaultSlotTime=9;
++					int defaultSIFS=16;
++					int aSlotTime;
++					int timeout;
++
++					aAirPropagationTime = val * 2 / c; /* in usec */
++					aSlotTime = defaultSlotTime + aAirPropagationTime;
++
++					timeout = defaultSIFS + aSlotTime;
++
++					sc->distance = val;
++					sc->slottime = aSlotTime;
++					sc->ack_timeout = timeout;
++					sc->cts_timeout = timeout;
++
++					ret = ath5k_hw_set_slot_time(sc->ah, aSlotTime);
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set distance: ath5k_hw_set_slot_time(%u us)=%i\n", aSlotTime, ret);
++					ret = ath5k_hw_set_ack_timeout(sc->ah, timeout);
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set distance: ath5k_hw_set_ack_timeout(%u us)=%i\n", timeout, ret);
++					ret = ath5k_hw_set_cts_timeout(sc->ah, timeout);
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: set distance: ath5k_hw_set_cts_timeout(%u us)=%i\n", timeout, ret);
++					if (sc->curchan) ath5k_reset(sc, sc->curchan); /* required to re-set eifs */
++				}
++				break;
++
++			case ATH_SYSCTL_ANTSWITCHING:
++				if ( (sc && sc->ah) &&
++				    ((val >= 0) && (val < 7)) ) {
++					if (sc->ah->ah_current_channel) {
++						ath5k_hw_set_antenna_mode(sc->ah, val);
++					} else {
++						sc->ah->ah_ant_mode=val;
++					}
++				}
++				break;
++			case ATH_SYSCTL_NOACKS:
++				if ((val >= 0) && (val <= 1)) {
++					sc->noacks = val;
++					if (val == 1) printk(KERN_INFO "ath5k_hamnet: 802.11 L2 ACKs disabled "
++								       "- you know what you're doing, right?\n");
++				}
++				break;
++			default:
++				ret = -EINVAL;
++				break;
++			}
++		}
++	} else {
++		switch ((long)ctl->extra2) {
++		case ATH_SYSCTL_CHANNELBW:
++			val = (sc->channelbw)? sc->channelbw: -1;
++			break;
++		case ATH_SYSCTL_ACKTIMEOUT:
++			if (sc && sc->ah) {
++				val = ath5k_hw_get_ack_timeout(sc->ah);
++			} else {
++				ret=-EINVAL;
++			}
++			break;
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: ath5k_hw_get_ack_timeout=%i, ret=%i\n", val, ret);
++		case ATH_SYSCTL_CTSTIMEOUT:
++			if (sc && sc->ah) {
++				val = ath5k_hw_get_cts_timeout(sc->ah);
++			} else {
++				ret=-EINVAL;
++			}
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: ath5k_hw_get_cts_timeout=%i, ret=%i\n", val, ret);
++			break;
++		case ATH_SYSCTL_SLOTTIME:
++			if (sc && sc->ah) {
++				val = ath5k_hw_get_slot_time(sc->ah);
++			} else {
++				ret=-EINVAL;
++			}
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: ath5k_hw_get_slot_time=%i, ret=%i\n", val, ret);
++			break;
++		case ATH_SYSCTL_DISTANCE:
++			val = sc->distance;
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: get distance: %i\n", val);
++			if ((val == 0) && (sc && sc->ah)) {
++				/* in case no distance has been set, estimate from slottime... */
++				int c = 300;	/* Speed of light in vacuum in m/us. */ 
++				int defaultSlotTime=9;
++				int aAirPropagationTime;
++				int aSlotTime;
++
++#if 0
++				if        (sc->channelbw == 5) {
++					defaultSlotTime = 36;	/* 5MHz */
++				} else if (sc->channelbw == 10) {
++					defaultSlotTime = 18;	/* 10MHz */
++				} else {
++					defaultSlotTime = 9;	/* 20MHz */
++				}
++#endif
++
++				aSlotTime = ath5k_hw_get_slot_time(sc->ah);
++				aAirPropagationTime = aSlotTime - defaultSlotTime;
++				val = aAirPropagationTime / 2 * c;
++			}
++			break;
++
++		case ATH_SYSCTL_ANTSWITCHING:
++			if (sc && sc->ah) {
++				int ant_mode=sc->ah->ah_ant_mode;
++				int tx_ant=sc->ah->ah_tx_ant;
++				char *modes[] ={
++					"[0] AR5K_ANTMODE_DEFAULT",	/* 0: default antenna setup */
++					"[1] AR5K_ANTMODE_FIXED_A",	/* 1: only antenna A is present */
++					"[2] AR5K_ANTMODE_FIXED_B",	/* 2: only antenna B is present */
++					"[3] AR5K_ANTMODE_SINGLE_AP",	/* 3: sta locked on a single ap */
++					"[4] AR5K_ANTMODE_SECTOR_AP",	/* 4: AP with tx antenna set on tx desc */
++					"[5] AR5K_ANTMODE_SECTOR_STA",	/* 5: STA with tx antenna set on tx desc */
++					"[6] AR5K_ANTMODE_DEBUG",	/* 6: Debug mode -A -> Rx, B-> Tx- */
++					};
++				snprintf(val_s, VAL_S_SIZE,
++					"Mode:   %s\n" 
++					"TX Ant: %i\n"
++					"Def Ant: %i\n",
++					(ant_mode >=0 && ant_mode < NUM_ANT_MODES) ?
++					modes[ant_mode] : "**unknown**", 
++					tx_ant,
++					ath5k_hw_reg_read(sc->ah, AR5K_DEFAULT_ANTENNA)
++				);
++				val_s[VAL_S_SIZE-1]='\0';
++			} else {
++				snprintf(val_s, VAL_S_SIZE,
++					"ERR: no PHY device found...\n");
++				val_s[VAL_S_SIZE-1]='\0';
++			}
++			break;
++		case ATH_SYSCTL_INFO:
++			if (sc && sc->ah) {
++				char *modestring="not initialized";
++				struct ieee80211_channel *channel = sc->ah->ah_current_channel;
++				if (channel) {
++					switch (channel->hw_value & CHANNEL_MODES) {
++					case CHANNEL_A:
++					case CHANNEL_T:
++					case CHANNEL_XR:
++						modestring="11a";
++						break;
++					case CHANNEL_G:
++					case CHANNEL_TG:
++						modestring="11g";
++						break;
++					case CHANNEL_B:
++						modestring="11b";
++						break;
++					default:
++						modestring="unknown";
++						break;
++					}
++				}
++
++				snprintf(val_s, VAL_S_SIZE,
++					"AR%s (MAC: 0x%x PHY: 0x%x) 2GHz RF%s 5GHz RF%s (single chip: %s)\n"
++					"ah->ah_version: %i %s\n"
++					"TX Pwr Lvl: %i\n"
++					"Noisefloor: %i\n"
++					"TX Ant:     %i\n"
++					"Def Ant:    %i\n"
++					"Chan BW:    %i\n"
++					"Mode:       %s\n"
++					"PLL Reg:    0x%x\n"
++					"PHY Mode:   0x%x\n"
++					"Ant Div:    %i\n"
++					"STA ID1:    0x%x\n",
++					ath5k_chip_name(AR5K_VERSION_MAC, sc->ah->ah_mac_srev),
++					sc->ah->ah_mac_srev,
++					sc->ah->ah_phy_revision,
++					ath5k_chip_name(AR5K_VERSION_RAD, sc->ah->ah_radio_2ghz_revision),
++					ath5k_chip_name(AR5K_VERSION_RAD, sc->ah->ah_radio_5ghz_revision),
++					(sc->ah->ah_single_chip)? "yes" : "no",
++					sc->ah->ah_version, 
++					(sc->ah->ah_version == 0)? "AR5K_AR5210" : 
++					(sc->ah->ah_version == 1)? "AR5K_AR5211" : 
++					(sc->ah->ah_version == 2)? "AR5K_AR5212" : "unknown",
++					sc->power_level,
++					sc->ah->ah_noise_floor,
++					sc->ah->ah_tx_ant,
++					ath5k_hw_reg_read(sc->ah, AR5K_DEFAULT_ANTENNA),
++					(sc->channelbw)? sc->channelbw: -1,
++					modestring,
++					ath5k_hw_reg_read(sc->ah, AR5K_PHY_PLL),
++					ath5k_hw_reg_read(sc->ah, AR5K_PHY_MODE),
++					(ath5k_hw_reg_read(sc->ah, AR5K_PHY_FAST_ANT_DIV)
++					   & AR5K_PHY_FAST_ANT_DIV_EN) ? 1:0,
++					ath5k_hw_reg_read(sc->ah, AR5K_STA_ID1)
++				);
++				val_s[VAL_S_SIZE-1]='\0';
++			}
++			break;
++		case ATH_SYSCTL_REGDUMP:
++			if (sc && sc->ah) {
++				snprintf(val_s, VAL_S_SIZE,
++					"Register Dump (Timing related)\n\n"
++					"          sc      | current   | raw reg value\n"
++					"-----------------------------------------\n"
++					"SlotTime: %4i us | %4i us   | 0x%04x\n"
++					"ACK t/o:  %4i us | %4i us   | 0x%04x\n"
++					"CTS t/o:  %4i us | %4i us   | 0x%04x\n"
++					"EIFS:        -    | %4i us   | 0x%04x\n"
++					"ACKs:     %s\n"
++					,
++					sc->slottime,
++					ath5k_hw_get_slot_time(sc->ah), 
++					(sc->ah->ah_version == AR5K_AR5210) ?
++						ath5k_hw_reg_read(sc->ah, AR5K_SLOT_TIME) & 0xffff :
++						ath5k_hw_reg_read(sc->ah, AR5K_DCU_GBL_IFS_SLOT) & 0xffff,
++					sc->ack_timeout,
++					ath5k_hw_get_ack_timeout(sc->ah), 
++					AR5K_REG_MS(ath5k_hw_reg_read(sc->ah, AR5K_TIME_OUT), AR5K_TIME_OUT_ACK),
++					sc->cts_timeout,
++					ath5k_hw_get_cts_timeout(sc->ah),
++					AR5K_REG_MS(ath5k_hw_reg_read(sc->ah, AR5K_TIME_OUT), AR5K_TIME_OUT_CTS),
++					ath5k_hw_clocktoh(sc->ah, ath5k_hw_reg_read(sc->ah, AR5K_DCU_GBL_IFS_EIFS) & 0xffff),
++					ath5k_hw_reg_read(sc->ah, AR5K_DCU_GBL_IFS_EIFS) & 0xffff,
++					(sc->noacks)? "disabled" : "enabled"
++				);
++				val_s[VAL_S_SIZE-1]='\0';
++			}
++			break;
++		case ATH_SYSCTL_NOACKS:
++			val = sc->noacks;
++			break;
++		case ATH_SYSCTL_NOISEFLOOR:
++			if (sc && sc->ah) val = sc->ah->ah_noise_floor;
++			else val=-999;
++			break;
++		default:
++			ret = -EINVAL;
++			break;
++		}
++		/* ID > 100 operate on strings, see above */
++		if ((long)ctl->extra2 > 100) {
++			ctl->data = val_s;
++			ctl->maxlen = VAL_S_SIZE * sizeof(char);
++			ret = ATH_SYSCTL_PROC_DOSTRING(ctl, write, filp, buffer, 
++				lenp, ppos);
++		} else {
++			ctl->data = &val;
++			ctl->maxlen = sizeof(val);
++			ret = ATH_SYSCTL_PROC_DOINTVEC(ctl, write, filp, buffer, 
++				lenp, ppos);
++		}
++	}
++end:
++	mutex_unlock(&sc->lock);
++	return ret;
++#undef VAL_S_SIZE
++#undef NUM_ANT_MODES
++}
++
++static ctl_table ath_sysctl_table[] = {
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "channelbw",
++	  .mode		= 0644,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_CHANNELBW,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "ant_mode",
++	  .mode		= 0644,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_ANTSWITCHING,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "info",
++	  .mode		= 0444,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_INFO,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "ack_timeout",
++	  .mode		= 0644,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_ACKTIMEOUT,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "cts_timeout",
++	  .mode		= 0644,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_CTSTIMEOUT,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "slottime",
++	  .mode		= 0644,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_SLOTTIME,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "distance",
++	  .mode		= 0644,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_DISTANCE,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "regdump",
++	  .mode		= 0444,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_REGDUMP,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "use_no_acks",
++	  .mode		= 0644,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_NOACKS,
++	},
++	{ .ctl_name	= CTL_UNNUMBERED,
++	  .procname	= "noisefloor",
++	  .mode		= 0444,
++	  .proc_handler	= ath_sysctl,
++	  .extra2	= (void *)ATH_SYSCTL_NOISEFLOOR,
++	},
++	{0}
++};
++
++static int register_sysctls (struct ath5k_softc* sc) {
++	unsigned int i, space;
++	char *dev_name = NULL;
++
++	ctl_table *ctl_table_hdr;
++
++	/* Prevent multiple registrations */
++	if (sc->sc_sysctls)
++		return 0;
++
++	space = 5 * sizeof(struct ctl_table) + sizeof(ath_sysctl_table);
++	ctl_table_hdr = kzalloc(space, GFP_KERNEL);
++	if (ctl_table_hdr == NULL) {
++		ATH5K_WARN(sc, "Insufficient memory for sysctl table!\n");
++		return 0;
++	}
++
++	dev_name = kmalloc((strlen(wiphy_name(sc->hw->wiphy)) + 1)
++			   * sizeof(char), GFP_KERNEL);
++	if (dev_name == NULL) {
++		ATH5K_WARN(sc, "Insufficient memory for device name storage!\n");
++		kfree(ctl_table_hdr);
++		ctl_table_hdr = NULL;
++		return 0;
++	}
++	strncpy(dev_name, wiphy_name(sc->hw->wiphy), 
++	        strlen(wiphy_name(sc->hw->wiphy)) + 1);
++
++
++	/* setup the table */
++	ctl_table_hdr[0].ctl_name = CTL_DEV;
++	ctl_table_hdr[0].procname = "dev";
++	ctl_table_hdr[0].mode = 0555;
++	ctl_table_hdr[0].child = &ctl_table_hdr[2];
++	/* [1] is NULL terminator */
++	ctl_table_hdr[2].ctl_name = CTL_UNNUMBERED;
++	ctl_table_hdr[2].procname = dev_name;
++	ctl_table_hdr[2].mode = 0555;
++	ctl_table_hdr[2].child = &ctl_table_hdr[4];
++	/* [3] is NULL terminator */
++	/* copy in pre-defined data */
++	memcpy(&ctl_table_hdr[4], ath_sysctl_table,
++		sizeof(ath_sysctl_table));
++
++	/* add in dynamic data references */
++	for (i = 4; ctl_table_hdr[i].procname; i++)
++		if (ctl_table_hdr[i].extra1 == NULL)
++			ctl_table_hdr[i].extra1 = sc;
++
++	/* and register everything */
++	sc->sc_sysctl_header = register_sysctl_table(ctl_table_hdr);
++	if (!sc->sc_sysctl_header) {
++		ATH5K_WARN(sc, "Failed to register sysctls!\n");
++		kfree(dev_name);
++		kfree(ctl_table_hdr);
++		return 0;
++	}
++
++	sc->sc_sysctls = ctl_table_hdr;
++	return 0;
++}
++
++static int unregister_sysctls (struct ath5k_softc* sc) {
++
++	if (sc && sc->sc_sysctl_header) {
++		unregister_sysctl_table(sc->sc_sysctl_header);
++		sc->sc_sysctl_header = NULL;
++	}
++
++	if (sc && sc->sc_sysctls ) {
++		ctl_table *ctl_table_hdr = sc->sc_sysctls;
++		if (ctl_table_hdr[2].procname) {
++			kfree(ctl_table_hdr[2].procname);
++			ctl_table_hdr[2].procname = NULL;
++		}
++		kfree(sc->sc_sysctls);
++		sc->sc_sysctls = NULL;
++	}
++
++	return 0;
++}
+diff -Naur compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/base.h compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/base.h
+--- compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/base.h	2010-03-26 19:25:51.000000000 +0100
++++ compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/base.h	2010-08-28 18:04:48.000000000 +0200
+@@ -215,6 +215,16 @@
+ 	bool			enable_beacon;	/* true if beacons are on */
+ 
+ 	struct ath5k_statistics	stats;
++
++/*&&&&*/
++	int			channelbw;	/* channel bandwidth 20/10/5 */
++	int			distance;	/* max distance - ACK/CTS/slot time calc */
++	int			slottime;	/* slottime in usec */
++	int			ack_timeout;	/* ACK timeout in usec */
++	int			cts_timeout;	/* CTS timeout in usec */
++	int			noacks;		/* disable ACKs for traffic */
++	void			*sc_sysctls;	/* ptr to dynamic ctl_table */
++	void			*sc_sysctl_header; /* pointer to static ctl_table */
+ };
+ 
+ #define ath5k_hw_hasbssidmask(_ah) \
+@@ -223,3 +233,33 @@
+ 	(ath5k_hw_get_capability(_ah, AR5K_CAP_VEOL, 0, NULL) == 0)
+ 
+ #endif
++
++/*&&&&&&&&&&&&&&&&&&&&&&&&&&*/
++/*
++ * Deal with the sysctl handler api changing.
++ */
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,8)
++#define	ATH_SYSCTL_DECL(f, ctl, write, filp, buffer, lenp, ppos) \
++	f(ctl_table *ctl, int write, struct file *filp, \
++	  void __user *buffer, size_t *lenp)
++#define	ATH_SYSCTL_PROC_DOINTVEC(ctl, write, filp, buffer, lenp, ppos) \
++	proc_dointvec(ctl, write, filp, buffer, lenp)
++#define	ATH_SYSCTL_PROC_DOSTRING(ctl, write, filp, buffer, lenp, ppos) \
++	proc_dostring(ctl, write, filp, buffer, lenp)
++#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,32)
++#define	ATH_SYSCTL_DECL(f, ctl, write, filp, buffer, lenp, ppos) \
++	f(ctl_table *ctl, int write, struct file *filp, \
++	  void __user *buffer, size_t *lenp, loff_t *ppos)
++#define	ATH_SYSCTL_PROC_DOINTVEC(ctl, write, filp, buffer, lenp, ppos) \
++	proc_dointvec(ctl, write, filp, buffer, lenp, ppos)
++#define	ATH_SYSCTL_PROC_DOSTRING(ctl, write, filp, buffer, lenp, ppos) \
++	proc_dostring(ctl, write, filp, buffer, lenp, ppos)
++#else /* Linux 2.6.32+ */
++#define	ATH_SYSCTL_DECL(f, ctl, write, filp, buffer, lenp, ppos) \
++	f(ctl_table *ctl, int write, \
++	  void __user *buffer, size_t *lenp, loff_t *ppos)
++#define	ATH_SYSCTL_PROC_DOINTVEC(ctl, write, filp, buffer, lenp, ppos) \
++	proc_dointvec(ctl, write, buffer, lenp, ppos)
++#define	ATH_SYSCTL_PROC_DOSTRING(ctl, write, filp, buffer, lenp, ppos) \
++	proc_dostring(ctl, write, buffer, lenp, ppos)
++#endif
+diff -Naur compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/desc.h compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/desc.h
+--- compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/desc.h	2010-03-26 19:25:50.000000000 +0100
++++ compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/desc.h	2010-08-28 18:05:34.000000000 +0200
+@@ -204,7 +204,7 @@
+ #define AR5K_4W_TX_DESC_CTL1_ENCRYPT_KEY_INDEX_S	13
+ #define AR5K_4W_TX_DESC_CTL1_FRAME_TYPE		0x00f00000
+ #define AR5K_4W_TX_DESC_CTL1_FRAME_TYPE_S	20
+-#define AR5K_4W_TX_DESC_CTL1_NOACK		0x01000000
++#define AR5K_4W_TX_DESC_CTL1_NOACK		0x01000000		/* Tell HW to not expect ACK for this frame */
+ #define AR5K_4W_TX_DESC_CTL1_COMP_PROC		0x06000000
+ #define AR5K_4W_TX_DESC_CTL1_COMP_PROC_S	25
+ #define AR5K_4W_TX_DESC_CTL1_COMP_IV_LEN	0x18000000
+diff -Naur compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/pcu.c compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/pcu.c
+--- compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/pcu.c	2010-03-26 19:25:50.000000000 +0100
++++ compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/pcu.c	2010-08-29 00:37:54.000000000 +0200
+@@ -177,6 +177,43 @@
+ /******************\
+ * ACK/CTS Timeouts *
+ \******************/
++/**
++ * ath5k_hw_het_ack_timeout - Get ACK timeout from PCU in usec
++ *
++ * @ah: The &struct ath5k_hw
++ */
++unsigned int ath5k_hw_get_ack_timeout(struct ath5k_hw *ah)
++{
++	u32 timeout_clock;
++	int channelbw=0;	/*&&&*/
++	ATH5K_TRACE(ah->ah_sc);
++
++/*&&&*/
++	if (ah && ah->ah_sc) channelbw=ah->ah_sc->channelbw;
++
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: hw_get_ack_timeout, regval=%i\n",
++AR5K_REG_MS(ath5k_hw_reg_read(ah,AR5K_TIME_OUT), AR5K_TIME_OUT_ACK));
++
++	timeout_clock = AR5K_REG_MS(ath5k_hw_reg_read(ah,
++				AR5K_TIME_OUT), AR5K_TIME_OUT_ACK);
++
++	/*&&& compensate for different bitrates (ACK transmission time)
++	      on lower BW channels */
++	switch (channelbw) {
++	case 10:
++		timeout_clock -= 400;
++		break;
++	case  5:
++		timeout_clock -= 600;
++		break;
++	default:
++		break;
++	}
++	if (timeout_clock < 0) timeout_clock=0;
++	/* Then go on as usual */
++
++	return ath5k_hw_clocktoh(ah, timeout_clock);
++}
+ 
+ /**
+  * ath5k_hw_set_ack_timeout - Set ACK timeout on PCU
+@@ -184,34 +221,158 @@
+  * @ah: The &struct ath5k_hw
+  * @timeout: Timeout in usec
+  */
+-static int ath5k_hw_set_ack_timeout(struct ath5k_hw *ah, unsigned int timeout)
++int ath5k_hw_set_ack_timeout(struct ath5k_hw *ah, unsigned int timeout)
+ {
++	int channelbw=0;	/*&&&*/
++	u32 timeout_clock;
+ 	ATH5K_TRACE(ah->ah_sc);
+-	if (ath5k_hw_clocktoh(ah, AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_ACK))
+-			<= timeout)
++/*&&&*/
++	if (ah && ah->ah_sc) channelbw=ah->ah_sc->channelbw;
++
++	timeout_clock = ath5k_hw_htoclock(ah, timeout);
++
++	/* Empiric evaluation. Lower bandwidth do not scale linear with
++	   ACK timeout register value...
++
++	Example:
++		~17km Link calculates to 138 usec ACK time.
++		Manually explored the min. working ACK time for:
++		20MHz BW: 126 usec
++		10MHz BW: 146 usec
++		 5MHz BW: 186 usec
++	!!! needs to be evaluated for a 2nd point (link with significantly different distance)
++	!!! to figure out if this is a constant value or depends on the distance.
++
++	So for 10 and 5MHz bandwidth a "correction value" (origin unknown)
++	must be considered and added. It is not known if this correction value
++	is of fixed nature or proportional to the link distance.
++
++	Looking at the clock counts, the picture is as following:
++	20MHz, 126us -> 0x13b0 = 5040 counts
++	10MHz, 146us -> 0x0b68 = 2920 counts
++	 5MHz, 185us -> 0x0744 = 1860 counts
++
++	Assuming that 10MHz is clocked half the speed the expected clock count would
++	be 2520 counts, leaving a delta of 400 counts.
++
++	Assuming that 5MHz is clocked quarter the speed the expected clock count would
++	be 1260 counts, leaving a delta of 600 counts.
++
++	802.11a:
++	1 count on 20 MHz BW is 1/40MHz = 0.025 usec
++	1 count on 10 MHz BW is 1/20MHz = 0.050 usec	400 counts => 20 usec
++	1 count on  5 MHz BW is 1/10MHz = 0.100 usec	600 counts => 60 usec
++
++	An educated guess of HB9XAR is that those deltas are fixed offsets.
++	So as a first solution attempt, we add the required number of counts
++	to the theoretically calculated value :-)
++
++	Same goes for CTS timeout setting
++	*/
++	switch (channelbw) {
++	case 10:
++		timeout_clock += 400;
++		break;
++	case  5:
++		timeout_clock += 600;
++		break;
++	default:
++		break;
++	}
++	/* Then go on as usual */
++
++	if ( timeout_clock > AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_ACK)) {
++		printk(KERN_INFO "ath5k_hamnet qcu.c: ath5k_hw_set_ack_timeout - clamping act t/o to max!\n");
++		timeout_clock = AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_ACK);
++	}
++
++#if 0
++	if (AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_ACK) <= timeout_clock)
+ 		return -EINVAL;
++#endif
+ 
+-	AR5K_REG_WRITE_BITS(ah, AR5K_TIME_OUT, AR5K_TIME_OUT_ACK,
+-		ath5k_hw_htoclock(ah, timeout));
++	AR5K_REG_WRITE_BITS(ah, AR5K_TIME_OUT, AR5K_TIME_OUT_ACK, timeout_clock);
+ 
+ 	return 0;
+ }
+ 
+ /**
++ * ath5k_hw_get_cts_timeout - Get CTS timeout from PCU in usec
++ *
++ * @ah: The &struct ath5k_hw
++ */
++unsigned int ath5k_hw_get_cts_timeout(struct ath5k_hw *ah)
++{
++	u32 timeout_clock;
++	int channelbw=0;	/*&&&*/
++	ATH5K_TRACE(ah->ah_sc);
++/*&&&*/
++	if (ah && ah->ah_sc) channelbw=ah->ah_sc->channelbw;
++
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: hw_get_cts_timeout, regval=%i\n",
++AR5K_REG_MS(ath5k_hw_reg_read(ah,AR5K_TIME_OUT), AR5K_TIME_OUT_CTS));
++
++	timeout_clock = AR5K_REG_MS(ath5k_hw_reg_read(ah,
++				AR5K_TIME_OUT), AR5K_TIME_OUT_CTS);
++
++	/*&&& compensate for different bitrates (ACK transmission time)
++	      on lower BW channels */
++	switch (channelbw) {
++	case 10:
++		timeout_clock -= 400;
++		break;
++	case  5:
++		timeout_clock -= 600;
++		break;
++	default:
++		break;
++	}
++	if (timeout_clock < 0) timeout_clock=0;
++	/* Then go on as usual */
++
++	return ath5k_hw_clocktoh(ah, timeout_clock);
++}
++
++/**
+  * ath5k_hw_set_cts_timeout - Set CTS timeout on PCU
+  *
+  * @ah: The &struct ath5k_hw
+  * @timeout: Timeout in usec
+  */
+-static int ath5k_hw_set_cts_timeout(struct ath5k_hw *ah, unsigned int timeout)
++int ath5k_hw_set_cts_timeout(struct ath5k_hw *ah, unsigned int timeout)
+ {
++	int channelbw=0;	/*&&&*/
++	u32 timeout_clock;
+ 	ATH5K_TRACE(ah->ah_sc);
+-	if (ath5k_hw_clocktoh(ah, AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_CTS))
+-			<= timeout)
++/*&&&*/
++	if (ah && ah->ah_sc) channelbw=ah->ah_sc->channelbw;
++
++	timeout_clock = ath5k_hw_htoclock(ah, timeout);
++
++	/*&&& same magic as for ath5k_hw_set_ack_timeout() applies here */
++	switch (channelbw) {
++	case 10:
++		timeout_clock += 400;
++		break;
++	case  5:
++		timeout_clock += 600;
++		break;
++	default:
++		break;
++	}
++	/* Then go on as usual */
++
++	if ( timeout_clock > AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_CTS)) {
++		printk(KERN_INFO "ath5k_hamnet qcu.c: ath5k_hw_set_ack_timeout - clamping act t/o to max!\n");
++		timeout_clock = AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_CTS);
++	}
++
++#if 0
++	if (AR5K_REG_MS(0xffffffff, AR5K_TIME_OUT_CTS) <= timeout_clock)
+ 		return -EINVAL;
++#endif
+ 
+-	AR5K_REG_WRITE_BITS(ah, AR5K_TIME_OUT, AR5K_TIME_OUT_CTS,
+-			ath5k_hw_htoclock(ah, timeout));
++	AR5K_REG_WRITE_BITS(ah, AR5K_TIME_OUT, AR5K_TIME_OUT_CTS, timeout_clock);
+ 
+ 	return 0;
+ }
+@@ -222,18 +383,59 @@
+  * @ah: The &struct ath5k_hw
+  * @usec: value in microseconds
+  */
++/*
++ * Translate usec to hw clock units
++ * TODO: Half/quarter rate &&&xar: half/quarter ok
++ */
+ unsigned int ath5k_hw_htoclock(struct ath5k_hw *ah, unsigned int usec)
+ {
+-	return usec * ath5k_hw_get_clockrate(ah);
++	int bw=0;
++	unsigned int f;
++
++	if (ah && ah->ah_sc) bw = ah->ah_sc->channelbw;
++
++	f=ath5k_hw_get_clockrate(ah);
++
++	switch (bw) {
++	case 10:
++		f = f/2;
++		break;
++	case  5:
++		f = f/4;
++		break;
++	default:
++		break;
++	}
++	return (usec * f);
+ }
+ 
+ /**
+  * ath5k_hw_clocktoh - Translate hw clock units to usec
+  * @clock: value in hw clock units
+  */
++/*
++ * Translate hw clock units to usec
++ * TODO: Half/quarter rate &&&xar: half/quarter ok
++ */
+ unsigned int ath5k_hw_clocktoh(struct ath5k_hw *ah, unsigned int clock)
+ {
+-	return clock / ath5k_hw_get_clockrate(ah);
++	int bw=0;
++	unsigned int f;
++
++	if (ah && ah->ah_sc) bw = ah->ah_sc->channelbw;
++	f=ath5k_hw_get_clockrate(ah);
++
++	switch (bw) {
++	case 10:
++		f = f/2;
++		break;
++	case  5:
++		f = f/4;
++		break;
++	default:
++		break;
++	}
++	return (clock / f);
+ }
+ 
+ /**
+@@ -243,9 +445,14 @@
+  */
+ unsigned int ath5k_hw_get_clockrate(struct ath5k_hw *ah)
+ {
+-	struct ieee80211_channel *channel = ah->ah_current_channel;
++	struct ieee80211_channel *channel=NULL;
+ 	int clock;
+ 
++	if (ah && ah->ah_current_channel) channel = ah->ah_current_channel;
++
++	/* life insurance - not initialized shall return "something" */
++	if (channel == NULL) return 40;
++
+ 	if (channel->hw_value & CHANNEL_5GHZ)
+ 		clock = 40; /* 802.11a */
+ 	else if (channel->hw_value & CHANNEL_CCK)
+diff -Naur compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/qcu.c compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/qcu.c
+--- compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/qcu.c	2010-03-26 19:25:50.000000000 +0100
++++ compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/qcu.c	2010-08-29 00:19:30.000000000 +0200
+@@ -190,6 +190,11 @@
+ /*
+  * Set DFS properties for a transmit queue on DCU
+  */
++/*&&&
++according to other sources the timing in here does not need to be adapted.
++Now sure, but there again are references to default Slot times and ACK timeount ?
++Let's do it anyway and see what happens.
++*/
+ int ath5k_hw_reset_tx_queue(struct ath5k_hw *ah, unsigned int queue)
+ {
+ 	u32 cw_min, cw_max, retry_lg, retry_sh;
+@@ -203,6 +208,10 @@
+ 	if (tq->tqi_type == AR5K_TX_QUEUE_INACTIVE)
+ 		return 0;
+ 
++/*&&&
++AR5K_AR5210 is an old MAC
++we do not support long distance links here
++*/
+ 	if (ah->ah_version == AR5K_AR5210) {
+ 		/* Only handle data queues, others will be ignored */
+ 		if (tq->tqi_type != AR5K_TX_QUEUE_DATA)
+@@ -518,21 +527,88 @@
+ 
+ /*
+  * Set slot time on DCU
++ *
++   17.3.8.6 Slot time
++   The slot time for the OFDM PHY shall be 9 s for 20 MHz channel spacing, shall be 13 µs for 10 MHz
++   channel spacing, and shall be 21 µs for 5 MHz channel spacing.
++   Where dot11RegulatoryClassesRequired is true, the value of the slot time shall be increased by the value of
++   3 µs × coverage class. The default value of coverage class shall be zero.
+  */
+ int ath5k_hw_set_slot_time(struct ath5k_hw *ah, unsigned int slot_time)
+ {
+-	u32 slot_time_clock = ath5k_hw_htoclock(ah, slot_time);
++	u32 slot_time_clock=0;
+ 
+ 	ATH5K_TRACE(ah->ah_sc);
+ 
++	slot_time_clock = ath5k_hw_htoclock(ah, slot_time);
++
++	if ( slot_time_clock > AR5K_SLOT_TIME_MAX) {
++		printk(KERN_INFO "ath5k_hamnet qcu.c: ath5k_hw_set_slot_time - clamping slot_time to max!\n");
++		slot_time_clock = AR5K_SLOT_TIME_MAX;
++	}
++
+ 	if (slot_time < 6 || slot_time_clock > AR5K_SLOT_TIME_MAX)
+ 		return -EINVAL;
+ 
+-	if (ah->ah_version == AR5K_AR5210)
++	if (ah->ah_version == AR5K_AR5210) {
+ 		ath5k_hw_reg_write(ah, slot_time_clock, AR5K_SLOT_TIME);
+-	else
++	} else {
+ 		ath5k_hw_reg_write(ah, slot_time_clock, AR5K_DCU_GBL_IFS_SLOT);
+-
++	}
+ 	return 0;
+ }
+ 
++/*
++ * Get slot time from DCU
++ */
++unsigned int ath5k_hw_get_slot_time(struct ath5k_hw *ah)
++{
++	ATH5K_TRACE(ah->ah_sc);
++
++/*&&&*/printk(KERN_INFO "ath5k_hamnet: hw_get_slottime, regval=%i\n", ath5k_hw_reg_read(ah,AR5K_DCU_GBL_IFS_SLOT));
++	
++	if (ah->ah_version == AR5K_AR5210)
++		return ath5k_hw_clocktoh(ah, ath5k_hw_reg_read(ah,
++				AR5K_SLOT_TIME) & 0xffff);
++	else
++		return ath5k_hw_clocktoh(ah, ath5k_hw_reg_read(ah, 
++				AR5K_DCU_GBL_IFS_SLOT) & 0xffff);
++}
++
++/*&&& set EIFS */
++int ath5k_hw_set_eifs(struct ath5k_hw *ah, int mode, unsigned int slot_time)
++{
++	int default_eifs=0x00000e60;
++	u32 eifs_clock;
++
++	if (ah->ah_version == AR5K_AR5212) {
++		/* from initvals: a/XR	   aTurbo	  b	   g (DYN)     gTurbo     */
++		u32 tmp[5]={ 0x00000e60, 0x00001180, 0x00001f1c, 0x00003e38, 0x00001180 };
++				if (mode >=0 && mode < 5) default_eifs=tmp[mode];
++	} else if (ah->ah_version == AR5K_AR5211) {
++		/* from initvals:  a	    aTurbo	  b	  g (OFDM)    */
++		u32 tmp[4]={ 0x00000d98, 0x00001180, 0x00001f48, 0x00000d98 };
++		if (mode >=0 && mode < 4) default_eifs=tmp[mode];
++	}
++#if 0
++/*&&&*/printk(KERN_INFO "ath5k_hamnet qcu.c: mode=%i, default_eifs=%i\n",mode,default_eifs);
++#endif
++	// EIFS = aSIFSTime + DIFS + ACKTxTime
++	//      = aSIFSTime + aSIFSTime + 2xSlotTime + ACKTxTime
++
++	// empiric: min slottime is 9 usec, this is already implicitely included
++	//          in the initial EIFS. Must be subtracted from slottime.
++	if (slot_time > 9) { slot_time -= 9; } else { slot_time=0;}
++
++	eifs_clock = ath5k_hw_htoclock(ah, 2*slot_time) + default_eifs;
++	if ( eifs_clock> AR5K_DCU_GBL_IFS_EIFS_M) {
++		printk(KERN_INFO "ath5k_hamnet qcu.c: ath5k_hw_set_eifs - clamping EIFS to max!\n");
++		eifs_clock = AR5K_DCU_GBL_IFS_EIFS_M;
++	}
++#if 0
++/*&&&*/printk(KERN_INFO "ath5k_hamnet qcu.c: eifs_clock=%i [0x%x]\n",eifs_clock,eifs_clock);
++#endif
++	ath5k_hw_reg_write(ah, eifs_clock, AR5K_DCU_GBL_IFS_EIFS);
++
++	return 0;
++}
+diff -Naur compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/reset.c compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/reset.c
+--- compat-wireless-2010-03-24.orig/drivers/net/wireless/ath/ath5k/reset.c	2010-03-26 19:25:50.000000000 +0100
++++ compat-wireless-2010-03-24/drivers/net/wireless/ath/ath5k/reset.c	2010-08-28 18:54:52.000000000 +0200
+@@ -83,7 +83,11 @@
+ 	 * we scale coef by shifting clock value by 24 for
+ 	 * better precision since we use integers */
+ 	/* TODO: Half/quarter rate */
+-	clock =  (channel->hw_value & CHANNEL_TURBO) ? 80 : 40;
++	//&&& clock =  (channel->hw_value & CHANNEL_TURBO) ? 80 : 40;
++	/* Half/quarter rate &&&xar */
++/*&&&*/
++	clock =  ath5k_hw_htoclock(ah, 1);
++
+ 	coef_scaled = ((5 * (clock << 24)) / 2) / channel->center_freq;
+ 
+ 	/* Get exponent
+@@ -381,13 +385,14 @@
+ 
+ /*
+  * Bring up MAC + PHY Chips and program PLL
+- * TODO: Half/Quarter rate support
++ * TODO: Half/Quarter rate support &&&xar: PLL setting done
+  */
+ int ath5k_hw_nic_wakeup(struct ath5k_hw *ah, int flags, bool initial)
+ {
+ 	struct pci_dev *pdev = ah->ah_sc->pdev;
+ 	u32 turbo, mode, clock, bus_flags;
+ 	int ret;
++	int channelbw=0;	/*&&&*/
+ 
+ 	turbo = 0;
+ 	mode = 0;
+@@ -446,6 +451,9 @@
+ 	if (initial)
+ 		return 0;
+ 
++/*&&&&*/
++	if (ah && ah->ah_sc) channelbw = ah->ah_sc->channelbw;
++
+ 	if (ah->ah_version != AR5K_AR5210) {
+ 		/*
+ 		 * Get channel mode flags
+@@ -463,6 +471,15 @@
+ 			mode |= AR5K_PHY_MODE_FREQ_2GHZ;
+ 			clock |= AR5K_PHY_PLL_44MHZ;
+ 
++			/*&&&*/
++			if (ah->ah_radio == AR5K_RF5413) {
++				if (channelbw == 10) mode |= AR5K_PHY_MODE_HALF_RATE;
++				if (channelbw ==  5) mode |= AR5K_PHY_MODE_QUARTER_RATE;
++			} else {
++				if (channelbw == 10) clock |= AR5K_PHY_PLL_HALF_RATE;
++				if (channelbw ==  5) clock |= AR5K_PHY_PLL_QUARTER_RATE;
++			}
++
+ 			if (flags & CHANNEL_CCK) {
+ 				mode |= AR5K_PHY_MODE_MOD_CCK;
+ 			} else if (flags & CHANNEL_OFDM) {
+@@ -484,10 +501,17 @@
+ 		} else if (flags & CHANNEL_5GHZ) {
+ 			mode |= AR5K_PHY_MODE_FREQ_5GHZ;
+ 
+-			if (ah->ah_radio == AR5K_RF5413)
++			if (ah->ah_radio == AR5K_RF5413) {
+ 				clock = AR5K_PHY_PLL_40MHZ_5413;
+-			else
++				/*&&&*/
++				if (channelbw == 10) mode |= AR5K_PHY_MODE_HALF_RATE;
++				if (channelbw ==  5) mode |= AR5K_PHY_MODE_QUARTER_RATE;
++			} else {
+ 				clock |= AR5K_PHY_PLL_40MHZ;
++				/*&&&*/
++				if (channelbw == 10) clock |= AR5K_PHY_PLL_HALF_RATE;
++				if (channelbw ==  5) clock |= AR5K_PHY_PLL_QUARTER_RATE;
++			}
+ 
+ 			if (flags & CHANNEL_OFDM)
+ 				mode |= AR5K_PHY_MODE_MOD_OFDM;
+@@ -718,6 +742,7 @@
+ 		 * as 5211 when setting initvals, shift
+ 		 * values here to their proper locations */
+ 		usec_reg = ath5k_hw_reg_read(ah, AR5K_USEC_5211);
++/*&&& half/quarter ???*/
+ 		ath5k_hw_reg_write(ah, usec_reg & (AR5K_USEC_1 |
+ 				AR5K_USEC_32 |
+ 				AR5K_USEC_TX_LATENCY_5211 |
+@@ -1115,6 +1140,62 @@
+ 								channel);
+ 		}
+ 
++/*&&& (re-)set timings upon reset wlan radio */
++		if (ah && ah->ah_sc) {
++#if 0
++/*&&& This really clutters up the kernel log (dmesg)... I should disable it as I've seen it working.*/
++/*&&&*/printk(KERN_INFO "ath5k_hamnet reset.c: set slot=%i, ack_to=%i, cts_to=%i\n",
++              ah->ah_sc->slottime, ah->ah_sc->ack_timeout, ah->ah_sc->cts_timeout);
++#endif
++			if (ah->ah_sc->slottime > 0) {
++				ret = ath5k_hw_set_slot_time(ah, ah->ah_sc->slottime);
++				//&&& add EIFS timing setting
++			}
++			if (ah->ah_sc->ack_timeout > 0) {
++				ret = ath5k_hw_set_ack_timeout(ah, ah->ah_sc->ack_timeout);
++			}
++			if (ah->ah_sc->cts_timeout > 0) {
++				ret = ath5k_hw_set_cts_timeout(ah, ah->ah_sc->cts_timeout);
++			}
++
++			// re-apply also EIFS values!
++			if (ah->ah_sc->distance > 0) {
++				ath5k_hw_set_eifs(ah, mode, ah->ah_sc->slottime);
++			}
++
++			/* Hack to disable L2 ACKs */
++			if ( (ah->ah_version == AR5K_AR5211) ||
++			     (ah->ah_version == AR5K_AR5212) )  { /* currently on 5211 & 5212 only... */
++				if (ah->ah_sc->noacks) {
++#if 0
++/*&&&*/printk(KERN_INFO "ath5k_hamnet reset.c: ath5k_hw_reset - disabling L2 ACKs\n");
++#endif
++					AR5K_REG_ENABLE_BITS(ah, AR5K_DIAG_SW,
++					    AR5K_DIAG_SW_DIS_ACK);
++				} else {
++					AR5K_REG_DISABLE_BITS(ah, AR5K_DIAG_SW,
++					    AR5K_DIAG_SW_DIS_ACK);
++				}
++			}
++
++/*
++>     In if_ath.c
++>
++>         First, in the ath_attach(), add the codes "OS_REG_WRITE(ah,
++>         0x8048, 0x00000002);", which writes register to disable the
++>         hardware auto ACK;
++>         And in the ath_reset(), do the same thing.
++>
++>
++>         Then, in the ath_tx_start(), before the call of
++>         ath_hal_setuptxdesc(), add the codes "flags |=
++>         HAL_TXDESC_NOACK;", which sets the flags to stop the hw ACK
++>         waiting.
++>             Done.
++*/
++
++		}
++
+ 		/*Enable/disable 802.11b mode on 5111
+ 		(enable 2111 frequency converter + CCK)*/
+ 		if (ah->ah_radio == AR5K_RF5111) {
+@@ -1262,14 +1343,20 @@
+ 	 * On 5211+ read activation -> rx delay
+ 	 * and use it.
+ 	 *
+-	 * TODO: Half/quarter rate support
++	 * TODO: Half/quarter rate support &&&xar: rough guess...
+ 	 */
+ 	if (ah->ah_version != AR5K_AR5210) {
+ 		u32 delay;
++		int channelbw=0;	/*&&&*/
++		if (ah && ah->ah_sc) channelbw=ah->ah_sc->channelbw;
++
+ 		delay = ath5k_hw_reg_read(ah, AR5K_PHY_RX_DELAY) &
+ 			AR5K_PHY_RX_DELAY_M;
+ 		delay = (channel->hw_value & CHANNEL_CCK) ?
+ 			((delay << 2) / 22) : (delay / 10);
++		/*&&&*/
++		if (channelbw == 5)  delay = delay * 4;
++		if (channelbw == 10) delay = delay * 2;
+ 
+ 		udelay(100 + (2 * delay));
+ 	} else {
+diff -Naur compat-wireless-2010-03-24.orig/net/mac80211/rx.c compat-wireless-2010-03-24/net/mac80211/rx.c
+--- compat-wireless-2010-03-24.orig/net/mac80211/rx.c	2010-03-26 19:25:51.000000000 +0100
++++ compat-wireless-2010-03-24/net/mac80211/rx.c	2010-08-29 12:33:06.000000000 +0200
+@@ -178,6 +178,18 @@
+ 		pos++;
+ 	}
+ 
++/*&&& hb9xar: Adding noise floor to radiotap header has been optimized
++              away. Until I know why and what is the proper way  to get
++              it back we do  it this way. */
++	/* IEEE80211_RADIOTAP_DBM_ANTNOISE */
++	if (local->hw.flags & IEEE80211_HW_NOISE_DBM) {
++		*pos = status->noise;
++		rthdr->it_present |=
++			cpu_to_le32(1 << IEEE80211_RADIOTAP_DBM_ANTNOISE );
++		pos++;
++	}
++
++
+ 	/* IEEE80211_RADIOTAP_LOCK_QUALITY is missing */
+ 
+ 	/* IEEE80211_RADIOTAP_ANTENNA */
+diff -Naur compat-wireless-2010-03-24.orig/net/wireless/reg.c compat-wireless-2010-03-24/net/wireless/reg.c
+--- compat-wireless-2010-03-24.orig/net/wireless/reg.c	2010-03-26 19:25:50.000000000 +0100
++++ compat-wireless-2010-03-24/net/wireless/reg.c	2010-10-24 12:40:59.000000000 +0200
+@@ -1572,6 +1572,11 @@
+ 				  const struct ieee80211_regdomain *regd)
+ {
+ 	int r;
++//&&& fixed to 20MHZ - assuming channel BW...
++//&&& Seems that I need to adapt this, use the current wireless
++//&&& setting...
++//&&& ... This is one of the 802.11 stack limitations (not yet supporting
++//&&& half and quarter rate channels)
+ 	u32 desired_bw_khz = MHZ_TO_KHZ(20);
+ 	u32 bw_flags = 0;
+ 	const struct ieee80211_reg_rule *reg_rule = NULL;
+@@ -1726,9 +1731,24 @@
+ 		 * Process user requests only after previous user/driver/core
+ 		 * requests have been processed
+ 		 */
++/*&&& 
++BUG: "iw reg set XX" fails to work after an invalid alpha2 has been set once.
++
++If a non-existing new domain is requested things lock up
++here. the last request contains the faulty alpha2 ID and the current
++domain did not change. regdom_changes will interpret this as
++a still pending change and in the end we just do NOTHING.
++
++What will be the proper thing to do? The current hack is:
++If lastreq == USER then just ignore things and do set the new
++reg domain.
++
++However, this does leave us with a potential race contition
++if userspace does request changes quickly - what happens then?
++*/
+ 		if (last_request->initiator == NL80211_REGDOM_SET_BY_CORE ||
+-		    last_request->initiator == NL80211_REGDOM_SET_BY_DRIVER ||
+-		    last_request->initiator == NL80211_REGDOM_SET_BY_USER) {
++		    last_request->initiator == NL80211_REGDOM_SET_BY_DRIVER /* ||
++		    last_request->initiator == NL80211_REGDOM_SET_BY_USER*/) {
+ 			if (regdom_changes(last_request->alpha2))
+ 				return -EAGAIN;
+ 		}

@@ -1,0 +1,112 @@
+#include<stdio.h>
+#include<string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int add_routing_entries(unsigned int **routing_entries, unsigned int routing_tree_length)
+{
+	int i=0;
+	printf("printing routing entries\n");
+	for(;i<routing_tree_length;i++)
+	{
+		printf("%u %u\n",routing_entries[i][0],routing_entries[i][1]);
+	}
+
+}
+int main(int argc, char **argv)
+{
+	FILE *fdproc, *fduser;	
+	char buff[255];
+	int bytesread=0;
+	int status = 0;
+	unsigned int ip1=0, ip2=0, self_ip=0, count=0, loop_counter=0, routing_tree_length = 0, temp = 0;
+	unsigned int **routing_entries = NULL;
+	
+	if (argc==2)
+	{
+		if ((fduser=fopen(argv[1], "w")) == NULL) {
+			printf("Could not open output file\n");
+		}
+
+	}
+	else
+	{
+		if ((fduser=stdout))//open("log_fractel.log", O_WRONLY | O_CREAT | O_TRUNC ))==-1) {
+		{
+			printf("writing to standard output\n");
+		}
+	}
+	while (1)
+	{
+		if ((fdproc=fopen("/proc/net/madwifi/ath0/fractel_routing_entries", "r"))!=NULL) {
+			if ((bytesread=fread(buff, 1, 255, fdproc))!=0)
+			{	
+				if (fwrite(buff, 1, bytesread, fduser)==0)
+				{
+					printf("Problem while writing\n");
+					break;
+				}
+				sscanf(buff,"%u %u %u", &temp, &ip1,&ip2);
+				if (ip1 == 11111111)
+				{
+					//start of routing tree
+					routing_tree_length = ip2;
+					count = ip2;
+					count++;
+					//free memory allocated for routing_table
+					if (routing_entries != NULL)
+					{
+						for(loop_counter = 0; loop_counter<routing_tree_length; loop_counter++)
+						{
+							free(routing_entries[loop_counter]);
+						}
+						free(routing_entries);
+						
+					}
+					//allocate memory
+					routing_entries = (unsigned int**)malloc(sizeof(unsigned int *)*routing_tree_length);
+					for(loop_counter = 0; loop_counter<routing_tree_length; loop_counter++)
+					{
+						routing_entries[loop_counter] = (unsigned int *)malloc(sizeof(unsigned int)*2);
+					}
+					printf("allocated memory %u %u\n",count,routing_tree_length);
+
+				}else if (count == routing_tree_length + 1)
+				{
+					printf("storing subsequent ips %u %u\n",count,routing_tree_length);
+					//first ip
+					self_ip = ip1;
+					count--;
+				}
+				else {
+					//subsequent ip's
+					printf("storing subsequent ips %u %u\n",count,routing_tree_length);
+					routing_entries[routing_tree_length - count][0] = ip1;
+					routing_entries[routing_tree_length - count][1] = ip2;
+					count--;
+					if (count == 0)
+					{
+						add_routing_entries(routing_entries, routing_tree_length);
+					}
+				}	
+			}
+			else
+			{	
+				sleep(1);
+			}	
+			
+		}
+		else
+		{	
+			sleep(1);
+			//printf("no data : %s\n",buff);			
+			//break;
+		}
+		fclose(fdproc);
+	}
+	fclose(fduser);
+	printf("returnin\n");
+	return 0;
+}

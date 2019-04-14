@@ -1,0 +1,206 @@
+<html>
+<head>
+<title>
+Routed AP Mode
+</title>
+</head>
+<body>
+<p> Basic explanation of what the Routed AP mode is and the configuration of RB in Routed AP mode is given <a href="http://wiki.openwrt.org/doc/recipes/routedclient">here</a>. Configuration specific to our network is given below. <br/>
+File: <b>/etc/config/network</b> </p>
+<pre style="background-color:lightgray">
+
+config interface 'loopback'
+	option ifname 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+
+config interface 'lan'
+	option ifname 'eth0'
+	option proto 'static'
+	option ipaddr '10.0.1.1'
+	option netmask '255.255.255.0'
+	#option gateway ''
+	option dns '8.8.8.8'
+	
+config interface 'wan'
+	option proto 'static'
+	option ipaddr '192.168.1.6'
+	option netmask '255.255.255.0'
+	option gateway '192.168.1.1'
+
+config switch
+	option name 'switch0'
+	option reset '1'
+	option enable_vlan '1'
+
+config switch_vlan
+	option device 'switch0'
+	option vlan '1'
+	option ports '1 2 5'
+</pre>
+
+<p>Here, it is assumed that the IP addresses are assigned in a static manner. If a DHCP server can lease IP addresses to the RB, then replace 'option proto static' with 'option proto dhcp' and delete (or comment) the next three lines.</p>
+
+<p>File: <b>/etc/config/wireless</b><p>
+<pre style="background-color:lightgray">
+config wifi-device  radio0
+	option type     mac80211
+	option channel  1
+	option hwmode	11g
+	option path	'pci0000:00/0000:00:14.0'
+
+	# REMOVE THIS LINE TO ENABLE WIFI:
+	# option disabled 1
+
+config wifi-iface
+	option device   radio0
+	option network  wan
+	option mode     sta
+	option ssid     IITB-TVWS
+	option encryption none
+</pre>
+
+<p>File: <b>/etc/config/dhcp</b><p>
+<pre style="background-color:lightgray">
+config dnsmasq
+	option domainneeded	1
+	option boguspriv	1
+	option filterwin2k	0  # enable for dial on demand
+	option localise_queries	1
+	option rebind_protection 1  # disable if upstream must serve RFC1918 addresses
+	option rebind_localhost 1  # enable for RBL checking and similar services
+	#list rebind_domain example.lan  # whitelist RFC1918 responses for domains
+	option local	'/lan/'
+	option domain	'lan'
+	option expandhosts	1
+	option nonegcache	0
+	option authoritative	1
+	option readethers	1
+	option leasefile	'/tmp/dhcp.leases'
+	option resolvfile	'/tmp/resolv.conf.auto'
+	#list server		'/mycompany.local/1.2.3.4'
+	#option nonwildcard	1
+	#list interface		br-lan
+	#list notinterface	lo
+	#list bogusnxdomain     '64.94.110.11'
+
+config dhcp lan
+	option interface	lan
+	option start 	100
+	option limit	150
+	option leasetime	12h
+	#option ignore 1
+
+config dhcp wan
+	option interface	wan
+	option ignore	1
+</pre>
+
+<p>File: <b>/etc/config/firewall</b><p>
+<pre style="background-color:lightgray">
+
+config defaults
+	option syn_flood '1'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+
+config zone
+	option name 'lan'
+	list network 'lan'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+	option masq '0'
+
+config zone
+	option name 'wan'
+	list network 'wan'
+	list network 'wan6'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+	option mtu_fix '1'
+	option masq '1'
+
+config forwarding
+	option src 'lan'
+	option dest 'wan'
+
+config forwarding
+	option src 'wan'
+	option dest 'lan'
+
+config rule
+	option name 'Allow-DHCP-Renew'
+	option src 'wan'
+	option proto 'udp'
+	option dest_port '68'
+	option target 'ACCEPT'
+	option family 'ipv4'
+
+config rule
+	option name 'Allow-Ping'
+	option src 'wan'
+	option proto 'icmp'
+	option icmp_type 'echo-request'
+	option family 'ipv4'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-DHCPv6'
+	option src 'wan'
+	option proto 'udp'
+	option src_ip 'fe80::/10'
+	option src_port '547'
+	option dest_ip 'fe80::/10'
+	option dest_port '546'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-ICMPv6-Input'
+	option src 'wan'
+	option proto 'icmp'
+	list icmp_type 'echo-request'
+	list icmp_type 'echo-reply'
+	list icmp_type 'destination-unreachable'
+	list icmp_type 'packet-too-big'
+	list icmp_type 'time-exceeded'
+	list icmp_type 'bad-header'
+	list icmp_type 'unknown-header-type'
+	list icmp_type 'router-solicitation'
+	list icmp_type 'neighbour-solicitation'
+	list icmp_type 'router-advertisement'
+	list icmp_type 'neighbour-advertisement'
+	option limit '1000/sec'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-ICMPv6-Forward'
+	option src 'wan'
+	option dest '*'
+	option proto 'icmp'
+	list icmp_type 'echo-request'
+	list icmp_type 'echo-reply'
+	list icmp_type 'destination-unreachable'
+	list icmp_type 'packet-too-big'
+	list icmp_type 'time-exceeded'
+	list icmp_type 'bad-header'
+	list icmp_type 'unknown-header-type'
+	option limit '1000/sec'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config include
+	option path '/etc/firewall.user'
+
+</pre>
+
+<hr/>
+<p align="right"> <i> Page maintained by <a href=https://www.ee.iitb.ac.in/student/~gaurangnaik/>Gaurang Naik</a>.<i></p>
+<hr/>
+</body>
+</html>
