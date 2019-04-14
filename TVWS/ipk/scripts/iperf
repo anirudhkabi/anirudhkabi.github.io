@@ -1,0 +1,3 @@
+opkg install libpthread_0.9.33.2-1_ar71xx.ipk
+opkg install uclibcxx_0.2.4-1_ar71xx.ipk
+opkg install iperf_2.0.5-1_ar71xx.ipk

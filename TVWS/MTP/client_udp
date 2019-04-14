@@ -1,0 +1,94 @@
+if [ $# = 0 ]; then
+        echo "Enter data rate"
+        read x
+	echo "Enter UDP Rate"
+	read udprate        
+elif [ $# = 1 ]; then
+        x=$1
+        echo "Enter UDP Rate"
+        read udprate
+elif [ $# = 2 ]; then
+	x=$1
+	udprate=$2
+else
+	echo "Usage: $0 ChannelRate UDPRate"
+	exit 1
+fi
+                        
+iwconfig wlan0 rate $x fixed
+
+echo "Rate changed to $x"
+
+ip=`ifconfig | grep -A 1 br-lan | grep inet | cut -d ":" -f 2 | cut -d " " -f 1`
+
+if [ "$ip" == "10.107.91.231" ]; then
+	echo "Sending UDP Data to node 2"
+	for i in 1 2 3 4 5
+	do
+		iperf -c 10.107.91.232 -b $udprate -f m >> udp_client_$x_$ip
+	done
+	echo "Sending UDP Data to node 3"
+	for i in 1 2 3 4 5 
+	do
+		iperf -c 10.107.91.233 -b $udprate -f m >> udp_client_$x_$ip
+	done
+	echo "Sending UDP Data to node 4"
+	for i in 1 2 3 4 5 
+	do
+		iperf -c 10.107.91.234 -b $udprate -f m >> udp_client_$x_$ip
+	done
+elif [ "$ip" == "10.107.91.232" ]; then
+	echo "Sending UDP Data to node 1"                                       
+	for i in 1 2 3 4 5                                                      
+	do                                                  
+		iperf -c 10.107.91.231 -b $udprate -f m >> udp_client_$x_$ip
+	done                                                
+	echo "Sending UDP Data to node 3"                   
+	for i in 1 2 3 4 5                                  
+	do                                                  
+	       iperf -c 10.107.91.233 -b $udprate -f m >> udp_client_$x_$ip
+	done                                                
+	echo "Sending UDP Data to node 4"                   
+	for i in 1 2 3 4 5                                  
+	do                                                  
+	       iperf -c 10.107.91.234 -b $udprate -f m >> udp_client_$x_$ip
+	done
+elif [ "$ip" == "10.107.91.233" ]; then
+	echo "Sending UDP Data to node 1"
+	for i in 1 2 3 4 5
+	do                                                                      
+	       iperf -c 10.107.91.231 -b $udprate -f m >> udp_client_$x_$ip    
+	done
+	echo "Sending UDP Data to node 2"
+	for i in 1 2 3 4 5
+	do
+		iperf -c 10.107.91.232 -b $udprate -f m >> udp_client_$x_$ip
+	done
+	echo "Sending UDP Data to node 4"
+	for i in 1 2 3 4 5
+	do
+		iperf -c 10.107.91.234 -b $udprate -f m >> udp_client_$x_$ip
+	done
+elif [ "$ip" == "10.107.91.234" ]; then
+	 echo "Sending UDP Data to node 1"                                       
+	 for i in 1 2 3 4 5                                                      
+	 do                                                                      
+	 	iperf -c 10.107.91.231 -b $udprate -f m >> udp_client_$x_$ip     
+	 done                                                                    
+	 echo "Sending UDP Data to node 2"                                   
+	 for i in 1 2 3 4 5                                                  
+	 do                                                                  
+	 	iperf -c 10.107.91.232 -b $udprate -f m >> udp_client_$x_$ip
+	 done                                                                
+	 echo "Sending UDP Data to node 4"                                   
+	 for i in 1 2 3 4 5
+	 do                                                                  
+	        iperf -c 10.107.91.234 -b $udprate -f m >> udp_client_$x_$ip
+	 done  
+else 
+	echo "Something Wrong with IP"
+	exit 1
+fi
+echo "---------------------------------------------------------------------------"                                                                                                                                                                                                
+./calc_udp_throughput udp_client_$x_$ip > final_udp_results_$ip
+cat final_udp_results_$ip

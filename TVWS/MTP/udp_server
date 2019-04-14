@@ -1,0 +1,12 @@
+echo "Enter data rate"
+read x
+
+iwconfig wlan0 rate $x fixed
+
+echo "Rate changed to $x"
+
+ip=`ifconfig | grep -A 1 br-lan | grep inet | cut -d ":" -f 2 | cut -d " " -f 1`
+                                   
+echo "Starting UDP Server at node $ip"
+                                    
+iperf -s -u -i 5 -f m >> udp_server_$x_$ip

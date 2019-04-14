@@ -1,0 +1,9 @@
+file=$1
+
+cat $1 | grep local | cut -d " " -f 5,10 | awk 'BEGIN{temp=0}{temp=temp+1; if(temp%5==0){print "Client: ",$1,"--->","Server: "$2}}'
+echo "-------------------------------------------------------------------"
+echo "Throughputs"
+cat $file | grep MBytes | cut -d " " -f 11 | awk 'BEGIN{temp=0}{print $1; temp=temp+1; if (temp%5==0) print"---"}'
+
+echo "Average: "
+cat $file | grep MBytes | cut -d " " -f 11 | awk 'BEGIN{temp=0;count=0}{temp=temp+$1;count=count+1; if(count%5==0) {print temp/5; temp=0}}'

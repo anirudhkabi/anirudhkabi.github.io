@@ -1,0 +1,100 @@
+echo "Connecting to TCP at Node 2"
+iperf -c 192.168.1.2 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.2 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.2 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.2 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.2 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+echo "Connecting to TCP at Node 3"  
+iperf -c 192.168.1.3 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.3 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.3 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.3 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.3 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+echo "Connecting to TCP at Node 4"  
+iperf -c 192.168.1.4 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.4 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.4 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.4 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+iperf -c 192.168.1.4 -p 5002 >> results_april20_node1_client_tcp_sz1
+sleep 10
+
+echo "Connecting to UDP at Node 2"  
+iperf -c 192.168.1.2 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.2 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.2 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.2 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.2 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+echo "Connecting to UDP at Node 3"  
+iperf -c 192.168.1.3 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.3 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.3 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.3 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.3 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+echo "Connecting to UDP at Node 4"  
+iperf -c 192.168.1.4 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.4 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.4 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.4 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+iperf -c 192.168.1.4 -b 10M -p 5004 >> results_april20_node1_client_udp_sz1
+sleep 10
+
+echo "Connecting to UDP bidirectional at Node 2"  
+iperf -c 192.168.1.2 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.2 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.2 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.2 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.2 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+echo "Connecting to UDP bidirectional at Node 3"
+iperf -c 192.168.1.3 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.3 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.3 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.3 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.3 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+echo "Connecting to UDP bidirectional at Node 4"
+iperf -c 192.168.1.4 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.4 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.4 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.4 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional
+sleep 10
+iperf -c 192.168.1.4 -b 10M -d -p 5004 >> results_april20_node1_client_udp_sz1_bidirectional

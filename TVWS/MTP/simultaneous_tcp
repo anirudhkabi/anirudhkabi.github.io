@@ -1,0 +1,32 @@
+#!/bin/bash
+if [ $# = 0 ]; then
+	echo "Enter data rate"
+	read x
+	echo "Enter number of transmissions"
+	read num
+elif [ $# = 1 ]; then
+	x=$1
+	echo "Enter number of transmissions"
+	read num
+elif [ $# = 2 ]; then
+        x=$1                        
+        num=$2
+else
+	echo "Usage: $0 ChannelRate NumberTransmissions"
+	exit 0
+fi
+					
+iwconfig wlan0 rate $x fixed
+					
+echo "Rate changed to $x"
+					
+ip=`ifconfig | grep -A 1 br-lan | grep inet | cut -d ":" -f 2 | cut -d " " -f 1`
+
+for (( i=1; i<=$num; i++ ))
+do
+	echo $i
+	iperf -c 10.107.91.234 -f m >> simult_tcp_$x_$ip
+done
+
+./calc_simult_tcp_throughput simult_tcp_$x_$ip >> final_simult_tcp_$ip
+cat final_simult_tcp_$ip

@@ -1,0 +1,21 @@
+if [ $# = 0 ]; then
+        echo "Enter data rate"
+        read x
+      	echo "Enter UDP Rate"
+	read udprate        
+elif [ $# = 1 ]; then
+        x=$1
+        echo "Enter UDP Rate"
+        read udprate
+elif [ $# = 2 ]; then
+       	x=$1
+	udprate=$2
+else
+        echo "Usage: $0 ChannelRate UDPRate"
+	exit 1
+fi
+
+./clean
+./client_tcp $x
+./client_udp $x $udprate
+./copy

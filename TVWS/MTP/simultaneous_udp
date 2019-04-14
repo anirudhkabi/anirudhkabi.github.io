@@ -1,0 +1,43 @@
+#!/bin/bash
+
+if [ $# = 0 ]; then
+	echo "Enter data rate"
+	read x
+	echo "Enter UDP rate"
+	read udprate
+	echo "Enter number of transmissions"
+	read num
+elif [ $# = 1 ]; then
+	x=$1
+	echo "Enter UDP rate"
+	read udprate
+	echo "Enter number of transmissions"
+	read num
+elif [ $# = 2 ]; then
+	x=$1
+	udprate=$2
+	echo "Enter number of transmissions"
+	read num
+elif [ $# = 3 ]; then
+	x=$1
+	udprate=$2
+	num=$3
+else
+	echo "Usage: $0 ChannelRate UDPRate NumberTransmission"
+	exit 0
+fi
+					
+iwconfig wlan0 rate $x fixed
+					
+echo "Rate changed to $x"
+					
+ip=`ifconfig | grep -A 1 br-lan | grep inet | cut -d ":" -f 2 | cut -d " " -f 1`
+					
+for (( i=1; i<=$num; i++ ))
+do
+	echo $i
+	iperf -c 10.107.91.234 -b $udprate -f m >> simult_udp_$x_$ip
+done
+
+./calc_simult_udp_throughput simult_udp_$x_$ip >> final_simult_udp_$ip
+cat final_simult_udp_$ip

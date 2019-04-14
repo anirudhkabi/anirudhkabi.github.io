@@ -1,0 +1,7 @@
+file=$1
+echo "------------------------------------------------------------------------------------------"
+cat $file | grep -A 1 'Server Report' | grep MBytes | cut -d " " -f 11,15,18 | cut -c 1,2,3,4,5,6,7,8,9,10,11,13,14 | awk 'BEGIN{temp=0}{temp=temp+1; print "Throughput:",$1,"    Jitter:",$2,"    Loss:(%)",$3; if (temp%5==0) print"---"}'
+echo "------------------------------------------------------------------------------------------"
+cat $file | grep -A 1 'Server Report' | grep MBytes | cut -d " " -f 11,15,18 | cut -c 1,2,3,4,5,6,7,8,9,10,11,13,14 | awk 'BEGIN{thr=0;jit=0;loss=0;count=0}{count=count+1; thr=thr+$1; jit=jit+$2; loss=loss+$3;}END{print "Count is:",count,"   Average throughput is:",thr/count,"  Average jitter is: ",jit/count,"   Average loss is:",loss/count}'
+echo "------------------------------------------------------------------------------------------"
+

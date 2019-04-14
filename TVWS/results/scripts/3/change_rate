@@ -1,0 +1,2 @@
+sed -i 's/12M/18M/g' /root/startup.sh
+sed -i 's/fractel_data_rate=15/fractel_data_rate=10/g' /root/config.cfg

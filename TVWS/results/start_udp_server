@@ -1,0 +1,1 @@
+iperf -s -u -p 5004 >> results_april18_node2_server_udp_18M

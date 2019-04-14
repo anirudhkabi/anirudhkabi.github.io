@@ -1,0 +1,5 @@
+cat $1 | grep local | cut -d " " -f 5,10 | awk 'BEGIN{temp=0}{temp=temp+1; if(temp%5==0){print "Client: ",$1,"--->","Server: "$2}}'
+echo "--------------------------------------------------------------------"
+#cat $1 | grep -A 1 'Server Report' | grep MBytes | cut -d " " -f 11,15,18 | awk '{print "Throughput:",$1,"    Jitter:",$2,"    Loss:",$3}'
+cat $1 | grep -A 1 'Server Report' | grep MBytes | cut -d " " -f 11,15,18 | cut -c 1,2,3,4,5,6,7,8,9,10,11,13,14 | awk 'BEGIN{temp=0}{temp=temp+1; print "Throughput:",$1,"    Jitter:",$2,"    Loss:(%)",$3; if (temp%5==0) print"---"}' 
+cat $1 | grep -A 1 'Server Report' | grep MBytes | cut -d " " -f 11,15,18 | cut -c 1,2,3,4,5,6,7,8,9,10,11,13,14 | awk 'BEGIN{thr=0;jit=0;loss=0;count=0}{count=count+1; thr=thr+$1; jit=jit+$2; loss=loss+$3; if(count%5==0) {print thr/5,jit/5,loss/5; thr=0; loss=0; jit=0;}}'

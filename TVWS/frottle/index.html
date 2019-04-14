@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>
+Compilation and configuration of frottle
+</title>
+</head>
+<body>
+<h2>Compilation and configration of Frottle</h2>
+<p>
+Visit the <a href="http://frottle.sourceforge.net">Frottle Homepage</a> for a brief description of what Frottle is and what it does.
+This page also gives instructions on how to compile the .ipk file for Openwrt; however, I faced quite a few problems during
+the compilation and the configuration. 
+</p>
+<hr/>
+
+<h3> Files </h3>
+<a href="frottle-0.2.1.tar.gz">Unmodified sourcecode</a><br/>
+<a href="frottle.tar.bz2">Sourcecode with Openwrt Makefile</a></br>
+<a href="frottle_0.2.1-1_ar71xx.ipk">IPK file for RB433AH (You will have to recompile if you are using any other hardware!)</a></br>
+<a href="conf_files/">Configuration files</a>
+<p
+
+<p>
+The configuration files have the AP and STA configuration files named as "ap_frottle.conf" and "sta_frottle.conf" respectively. However, this won't work in OpenWrt. You will have to rename these files to "frottle.conf" and place it in the "/etc" directory, without which running frottle would give the following error:
+<pre style="background-color:lightgray">
+root@OpenWrt:~# frottle 
+Frottle: not configured to run as a master nor client
+</pre>
+</p>
+<hr/>
+<b>Compilation Issues</b>
+
+<p>
+I persistently got this issue! Every time I would recompile frottle, the compilation would throw this error: 
+<pre style="background-color:lightgray">
+Makefile:186: .deps/client.Po: No such file or directory
+Makefile:187: .deps/main.Po: No such file or directory
+Makefile:188: .deps/master.Po: No such file or directory
+make[3]: *** No rule to make target `.deps/master.Po'.  Stop.
+</pre>
+To get rid of this issue, simply go to the directory where the compilation is trying to find ".deps". Make a directory named ".deps" and then create the following files using touch.
+
+<pre style="background-color:lightgray">
+cd ~/openwrt/attitude_adjustment/build_dir/target-mips_r2_uClibc-0.9.33.2/frottle-0.2.1
+mkdir .deps
+touch .deps/client.Po
+touch .deps/master.Po
+touch .deps/main.Po
+touch .deps/main.TPo
+</pre>
+</p>
+<hr/>
+
+<b>Configuration Issues</b>
+<p>
+The instructions given on the  <a href="http://frottle.sourceforge.net">Frottle Homepage</a> mention the general configuration instructions. The command "modprobe" does not load modules in OpenWrt. You have to use the command "insmod" instead. So the configuration of frottle for OpenWrt looks something like:
+
+<pre style="background-color:lightgray">
+insmod iptable_filter
+insmod ip_queue
+iptables -A INPUT -p UDP -i wlan0 --dport 999 -j ACCEPT  # Allow control packets in
+iptables -A OUTPUT -p UDP -o wlan0 --sport 999 -j ACCEPT # Allow control packets directly out
+iptables -A OUTPUT -p ALL -o wlan0 -j QUEUE              # fractel outbound packets
+iptables -A FORWARD -p ALL -o wlan0 -j QUEUE             # fractel outbound packets
+</pre>
+
+<hr/>
+<b>How to check if Frottle is working?</b>
+<p>Once you execute these commands and run frottle, you will not know if frottle is indeed working. To check this, you can read the logs in OpenWrt using "logread" on which you will get the following response depending on whether your device is configured as a master or client.
+
+
+<pre style="background-color:lightgray">
+logread
+....
+....
+Sep 14 10:34:09 OpenWrt user.notice syslog: Acting as a master on port 999
+Sep 14 10:34:09 OpenWrt user.notice syslog: Acting as a self-client with 200 packet queues
+....
+</pre>
+<pre style="background-color:lightgray">
+logread
+....
+....
+Sep 14 12:11:51 OpenWrt user.notice syslog: Acting as a client to 10.107.63.198:999 with 100 packet queues
+Sep 14 12:11:51 OpenWrt user.info syslog: Client up and running
+Sep 14 12:11:51 OpenWrt user.info syslog: Client sent registration
+....
+</pre>
+
+</p>
+
+
+<hr/>
+<p>
+When you execute the "insmod iptable_filter" and "insmod ip_queue" commands, make sure they do load the modules. In my case, OpenWrt failed to load ip_queue and gave the following error 
+<pre style="background-color:lightgray">
+...
+Sep 14 08:12:14 OpenWrt user.err syslog: IPQ handle null: Failed to initialise IPQ (Unable to create netlink socket)
+...
+</pre>
+
+I had to install the "ip_queue" module using:
+<pre style="background-color:lightgray">
+opkg install <a href="https://downloads.openwrt.org/attitude_adjustment/12.09/ar71xx/generic/packages/kernel_3.3.8-1-d6597ebf6203328d3519ea3c3371a493_ar71xx.ipk">kernel_3.3.8-1-d6597ebf6203328d3519ea3c3371a493_ar71xx.ipk</a>
+opkg install <a href="https://downloads.openwrt.org/attitude_adjustment/12.09/ar71xx/generic/packages/kmod-ipt-queue_3.3.8-1_ar71xx.ipk">kmod-ipt-queue_3.3.8-1_ar71xx.ipk</a>
+</pre>
+Make sure you download the correct .ipk file for your hardware achitecture from the <a href="http://downloads.openwrt.org">OpenWrt Downloads</a> page.
+</p>
+<hr/>
+<p align="right"> <i> Page maintained by <a href=https://www.ee.iitb.ac.in/student/~gaurangnaik/>Gaurang Naik</a>.<i></p>
+<hr/>
+
+
+</body>
+</html>

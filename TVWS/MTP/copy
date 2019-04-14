@@ -1,0 +1,2 @@
+scp final_* root@10.107.91.232:/tbc/
+scp *_client_* root@10.107.91.232:/tbc/

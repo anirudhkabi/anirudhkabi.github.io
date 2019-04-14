@@ -1,0 +1,7 @@
+file=$1
+echo "----------------------------------------------------------------------------------"
+echo "Throughputs are:"
+cat $file | grep MBytes | cut -d " " -f 11
+echo "----------------------------------------------------------------------------------"
+cat $file | grep MBytes | cut -d " " -f 11 | awk 'BEGIN{count=0;thr=0}{thr=thr+$1;count=count+1;}END{print "Average throughput is",thr/count,"   Count is",count}'
+echo "----------------------------------------------------------------------------------"

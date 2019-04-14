@@ -1,0 +1,98 @@
+------------------------------------------------------------
+Client connecting to 192.168.1.1, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  5] local 192.168.1.4 port 46898 connected with 192.168.1.1 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  5]  0.0-10.0 sec  1.28 MBytes  1.08 Mbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.1, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  5] local 192.168.1.4 port 46899 connected with 192.168.1.1 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  5]  0.0-10.0 sec  1.28 MBytes  1.08 Mbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.1, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  5] local 192.168.1.4 port 46900 connected with 192.168.1.1 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  5]  0.0-10.0 sec  1.28 MBytes  1.08 Mbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.1, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  5] local 192.168.1.4 port 46901 connected with 192.168.1.1 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  5]  0.0-10.0 sec  1.28 MBytes  1.08 Mbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.2, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 57550 connected with 192.168.1.2 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    894 KBytes    733 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.2, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 33558 connected with 192.168.1.2 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    896 KBytes    734 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.2, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 33559 connected with 192.168.1.2 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    899 KBytes    736 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.2, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 33560 connected with 192.168.1.2 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    896 KBytes    734 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.2, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 33561 connected with 192.168.1.2 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    901 KBytes    738 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 42232 connected with 192.168.1.3 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    921 KBytes    755 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 42233 connected with 192.168.1.3 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    934 KBytes    765 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 42234 connected with 192.168.1.3 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    936 KBytes    766 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 42235 connected with 192.168.1.3 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    917 KBytes    751 Kbits/sec
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5002
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  7] local 192.168.1.4 port 42236 connected with 192.168.1.3 port 5002
+[ ID] Interval       Transfer     Bandwidth
+[  7]  0.0-10.0 sec    939 KBytes    769 Kbits/sec

@@ -1,0 +1,2 @@
+echo 'Starting UDP Server'
+iperf -s -u -p 5004 >> results_april20_node1_server_udp_sz1

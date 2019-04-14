@@ -1,0 +1,33 @@
+echo "Make sure you have installed bash before you run this script"
+
+if [ $# = 0 ]; then
+        echo "Enter data rate"
+        read x
+        echo "Enter UDP rate"
+        read udprate
+        echo "Enter number of transmissions"
+        read num
+elif [ $# = 1 ]; then
+        x=$1
+        echo "Enter UDP rate"
+        read udprate
+        echo "Enter number of transmissions"
+        read num
+elif [ $# = 2 ]; then
+        x=$1
+        udprate=$2
+        echo "Enter number of transmissions"
+        read num
+elif [ $# = 3 ]; then                       
+        x=$1                                
+        udprate=$2                          
+   	num=$3
+else
+        echo "Usage: $0 ChannelRate UDPRate NumberTransmissions"
+	exit 0
+fi
+
+./clean_simult
+./simultaneous_tcp $x $num
+./simultaneous_udp $x $udprate $num
+./copy_simult

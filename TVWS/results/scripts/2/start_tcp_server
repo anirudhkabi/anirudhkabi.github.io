@@ -1,0 +1,1 @@
+iperf -s -p 5002 >> results_april20_node2_server_tcp_sz1
